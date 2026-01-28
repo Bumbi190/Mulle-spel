@@ -8,7 +8,12 @@ fetch('rules.json')
   .then(response => response.json())
   .then(rules => {
     console.log('Regler laddade:', rules);
-    // Här kan du sätta upp spelet utifrån reglerna
+
+    // ✅ Skapa kortleken EFTER att reglerna finns
+    const deck = createDeck(rules.game.decks);
+    console.log("Kortlek skapad:", deck.length); // ska vara 104
+
+    // Här fortsätter vi med spelet
   })
   .catch(err => console.error('Kunde inte läsa regler:', err));
 
@@ -27,7 +32,4 @@ function createDeck(decks = 2) {
 
   return deck;
 }
-const deck = createDeck(rules.game.decks);
-console.log("Kortlek skapad:", deck.length); // ska vara 104
-
 
