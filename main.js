@@ -9,30 +9,26 @@ document.body.appendChild(status);
 fetch("rules.json")
   .then(response => response.json())
   .then(rules => {
-    console.log("Regler laddade:", rules);
+  console.log("Regler laddade:", rules);
 
-    // ===== SKAPA KORTLEK =====
-    let deck = createDeck(rules.game.decks);
-    console.log("Kortlek skapad:", deck.length); // 104
+  // 1️⃣ SKAPA KORTLEK
+  let deck = createDeck(rules.game.decks);
+  console.log("Kortlek skapad:", deck.length);
 
-    // ===== BLANDA KORTLEK =====
-    shuffle(deck);
-    console.log("Kortlek blandad");
+  // 2️⃣ BLANDA
+  shuffle(deck);
+  console.log("Kortlek blandad");
 
-    // ===== SKAPA SPELARE =====
-    const players = createPlayers(4); // 2–6 senare
-    console.log("Spelare skapade:", players);
+  // 3️⃣ SKAPA SPELARE
+  const players = createPlayers(4);
+  console.log("Spelare skapade:", players);
 
-    // ===== DELA UT KORT =====
-    dealCards(deck, players, rules.game.startCards);
-    console.log("Efter utdelning:", players);
+  // 4️⃣ DELA UT KORT
+  dealCards(deck, players, rules.game.startCards);
+  console.log("Efter utdelning:", players);
 
-    console.log("Kort kvar i leken:", deck.length);
-
-    // Testlogg
-    console.log("Första spelarens hand:", players[0].hand);
-  })
-  .catch(err => console.error("Kunde inte läsa regler:", err));
+  console.log("Kort kvar i leken:", deck.length);
+});
 
 
 // ===== FUNKTIONER =====
