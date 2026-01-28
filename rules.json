@@ -1,0 +1,74 @@
+{
+  "game": {
+    "name": "Mulle – Fängelseedition",
+    "version": "1.0",
+    "minPlayers": 2,
+    "maxPlayers": 6,
+    "decks": 2,
+    "cardsPerPlayer": 5
+  },
+
+  "turnRules": {
+    "playCondition": "same_suit_or_rank",
+    "drawIfNoPlay": 1,
+    "direction": "clockwise"
+  },
+
+  "mulleRule": {
+    "enabled": true,
+    "announceAtCards": 1,
+    "penaltyIfMissed": {
+      "type": "draw_cards",
+      "amount": 5
+    }
+  },
+
+  "roundEnd": {
+    "condition": "player_has_no_cards",
+    "scoringAppliesTo": "all_other_players"
+  },
+
+  "scoring": {
+    "goal": "lowest_score_wins",
+    "endGameAtScore": 100,
+
+    "spades": {
+      "default": 1,
+      "ace": 1,
+      "two": 10
+    },
+
+    "specialCards": {
+      "diamonds_10": 10
+    }
+  },
+
+  "difficultyPresets": {
+    "standard": {
+      "spades": {
+        "two": 10
+      },
+      "specialCards": {
+        "diamonds_10": 10
+      },
+      "endGameAtScore": 100
+    },
+
+    "hardcore": {
+      "spades": {
+        "two": 15
+      },
+      "specialCards": {
+        "diamonds_10": 20
+      },
+      "endGameAtScore": 50
+    }
+  },
+
+  "notes": [
+    "All spades generate penalty points",
+    "Ace has no special effect beyond scoring",
+    "No action cards or color changes",
+    "Game is round-based with cumulative scoring"
+  ]
+}
