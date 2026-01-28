@@ -11,6 +11,15 @@ fetch("rules.json")
   .then(rules => {
     console.log("Regler laddade:", rules);
 
+    // ===== SKAPA SPELARE =====
+const players = createPlayers(4); // ändra till 2–6 senare
+console.log("Spelare skapade:", players);
+
+// ===== DELA UT KORT =====
+dealCards(deck, players, rules.game.startCards);
+console.log("Efter utdelning:", players);
+
+
     // ===== SKAPA KORTLEK =====
     let deck = createDeck(rules.game.decks);
     console.log("Kortlek skapad:", deck.length); // 104
@@ -56,4 +65,28 @@ function shuffle(deck) {
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
   return deck;
+}
+
+function createPlayers(count) {
+  const players = [];
+
+  for (let i = 1; i <= count; i++) {
+    players.push({
+      id: i,
+      name: `Spelare ${i}`,
+      hand: [],
+      score: 0
+    });
+  }
+
+  return players;
+}
+
+function dealCards(deck, players, cardsPerPlayer = 5) {
+  for (let round = 0; round < cardsPerPlayer; round++) {
+    for (const player of players) {
+      const card = deck.pop();
+      player.hand.push(card);
+    }
+  }
 }
