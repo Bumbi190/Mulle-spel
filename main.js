@@ -11,15 +11,6 @@ fetch("rules.json")
   .then(rules => {
     console.log("Regler laddade:", rules);
 
-    // ===== SKAPA SPELARE =====
-const players = createPlayers(4); // ändra till 2–6 senare
-console.log("Spelare skapade:", players);
-
-// ===== DELA UT KORT =====
-dealCards(deck, players, rules.game.startCards);
-console.log("Efter utdelning:", players);
-
-
     // ===== SKAPA KORTLEK =====
     let deck = createDeck(rules.game.decks);
     console.log("Kortlek skapad:", deck.length); // 104
@@ -28,20 +19,24 @@ console.log("Efter utdelning:", players);
     shuffle(deck);
     console.log("Kortlek blandad");
 
-    // Visa testdata
-    console.log("Första 5 korten:", deck.slice(0, 5));
+    // ===== SKAPA SPELARE =====
+    const players = createPlayers(4); // 2–6 senare
+    console.log("Spelare skapade:", players);
 
-    // 🔜 Här fortsätter spelet:
-    // - skapa spelare
-    // - dela ut kort
-    // - turordning
+    // ===== DELA UT KORT =====
+    dealCards(deck, players, rules.game.startCards);
+    console.log("Efter utdelning:", players);
+
+    console.log("Kort kvar i leken:", deck.length);
+
+    // Testlogg
+    console.log("Första spelarens hand:", players[0].hand);
   })
   .catch(err => console.error("Kunde inte läsa regler:", err));
 
 
 // ===== FUNKTIONER =====
 
-// Skapar 1–n kortlekar
 function createDeck(decks = 2) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
   const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
@@ -58,13 +53,11 @@ function createDeck(decks = 2) {
   return deck;
 }
 
-// Fisher–Yates shuffle (riktig shuffle)
 function shuffle(deck) {
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
-  return deck;
 }
 
 function createPlayers(count) {
@@ -85,8 +78,7 @@ function createPlayers(count) {
 function dealCards(deck, players, cardsPerPlayer = 5) {
   for (let round = 0; round < cardsPerPlayer; round++) {
     for (const player of players) {
-      const card = deck.pop();
-      player.hand.push(card);
+      player.hand.push(deck.pop());
     }
   }
 }
