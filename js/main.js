@@ -109,14 +109,17 @@ function renderGame() {
 // ===== GAME LOGIC =====
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand[cardIndex];
+
   if (!canPlayCard(card)) return;
 
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  if (currentDragSuit === null) currentDragSuit = card.suit;
+  if (currentDragSuit === null) {
+    currentDragSuit = card.suit;
+  }
 
-  renderGame(); // same player continues until "Lagg klart"
+  renderGame(); // samma spelare fortsätter
 }
 
 function endTurn() {
