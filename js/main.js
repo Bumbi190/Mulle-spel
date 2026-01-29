@@ -13,6 +13,8 @@ const status = document.getElementById("status");
 fetch("rules.json")
   .then(res => res.json())
   .then(rules => {
+    console.log("✅ Regler OK:", rules);
+
     deck = createDeck(rules.game.decks);
     shuffle(deck);
 
@@ -24,8 +26,11 @@ fetch("rules.json")
     );
 
     updateStatus();
+    console.log(players);
+
     renderGame();
   });
+
 
 // ===== RENDER =====
 function renderGame() {
