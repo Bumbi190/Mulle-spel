@@ -21,7 +21,8 @@ fetch("rules.json")
     shuffle(deck);
 
     players = createPlayers(4);
-    dealCards(deck, players, rules.game.startCards);
+    dealCards(deck, players, 5);
+
 
     status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
 
