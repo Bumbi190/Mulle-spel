@@ -83,7 +83,8 @@ gameArea.appendChild(table);
       if (index === currentPlayerIndex && canPlayCard(card)) {
   cardDiv.onclick = () => playCard(index, cardIndex);
 } else {
-  cardDiv.style.opacity = "0.4";
+  cardDiv.classList.add("disabled");
+
 }
 
 
