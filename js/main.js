@@ -1,3 +1,5 @@
+console.log("🔥 main.js laddad");
+
 console.log("Mulle – Fängelseedition startar");
 console.log("🔥 main.js laddad korrekt");
 
