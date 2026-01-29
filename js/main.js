@@ -1,3 +1,4 @@
+const HELP_MODE = true; // ← ändra till false senare
 console.log("🔥 Mulle – Fängelseedition startar");
 
 // ===== GLOBAL STATE =====
@@ -72,12 +73,17 @@ function renderGame() {
       cardDiv.className = "card";
       cardDiv.textContent = formatCard(card);
 
-      if (index === currentPlayerIndex && canPlayCard(card)) {
-       cardDiv.classList.add("playable");
-       cardDiv.onclick = () => playCard(index, cardIndex);
-       } else {
-       cardDiv.classList.add("disabled");
-      }     
+      if (index === currentPlayerIndex) {
+  if (!HELP_MODE || canPlayCard(card)) {
+    cardDiv.onclick = () => playCard(index, cardIndex);
+    if (HELP_MODE && canPlayCard(card)) {
+      cardDiv.classList.add("playable");
+    }
+  } else {
+    cardDiv.classList.add("disabled");
+  }
+}
+    
 
 
       handDiv.appendChild(cardDiv);
@@ -117,12 +123,14 @@ function canPlayCard(card) {
 }
 
 function hasPlayableCard(player) {
-  return player.hand.some(canPlayCard);
+  return player.hand.some(card => canPlayCard(card));
 }
+
 
 function takeTablePile(player) {
   player.hand.push(...tablePile);
   tablePile = [];
+  tablePile.length = 0;
   nextTurn();
 }
 
