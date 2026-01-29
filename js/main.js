@@ -68,14 +68,18 @@ function renderGame() {
       cardDiv.textContent = formatCard(card);
 
       if (index === currentPlayerIndex) {
-        if (!HELP_MODE || canPlayCard(card)) {
-          cardDiv.onclick = () => playCard(index, cardIndex);
-          if (HELP_MODE && canPlayCard(card)) {
-            cardDiv.classList.add("playable");
-          }
-        } else {
-          cardDiv.classList.add("disabled");
-        }
+  cardDiv.onclick = () => playCard(index, cardIndex);
+
+  if (HELP_MODE) {
+    if (canPlayCard(card)) {
+      cardDiv.classList.add("playable");
+    } else {
+      cardDiv.classList.add("disabled");
+    }
+  }
+} else {
+  cardDiv.classList.add("disabled");
+}
       } else {
         cardDiv.classList.add("disabled");
       }
