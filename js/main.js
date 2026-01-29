@@ -1,4 +1,4 @@
-const HELP_MODE = true; // ← ändra till false senare
+const HELP_MODE = true; // sätt till false senare
 console.log("🔥 Mulle – Fängelseedition startar");
 
 // ===== GLOBAL STATE =====
@@ -8,34 +8,26 @@ let tablePile = [];
 let currentPlayerIndex = 0;
 let currentDragSuit = null;
 
-
 // ===== UI =====
 const status = document.getElementById("status");
+const gameArea = document.getElementById("game");
 
 // ===== START =====
 fetch("rules.json")
   .then(res => res.json())
   .then(rules => {
-    console.log("✅ Regler OK:", rules);
-
     deck = createDeck(rules.game.decks);
     shuffle(deck);
 
     players = createPlayers(4);
     dealCards(deck, players, 5);
 
-    console.log(
-      players.map(p => `${p.name}: ${p.hand.map(formatCard).join(" ")}`)
-    );
-
     updateStatus();
     renderGame();
   });
 
-
 // ===== RENDER =====
 function renderGame() {
-  const gameArea = document.getElementById("game");
   gameArea.innerHTML = "";
 
   // 🃏 MITTEN
@@ -54,13 +46,6 @@ function renderGame() {
       table.appendChild(c);
     });
   }
-
-  if (index === currentPlayerIndex && currentDragSuit !== null) {
-  const doneBtn = document.createElement("button");
-  doneBtn.textContent = "Lägg klart";
-  doneBtn.onclick = () => endTurn();
-  playerDiv.appendChild(doneBtn);
-}
 
   gameArea.appendChild(table);
 
@@ -83,22 +68,30 @@ function renderGame() {
       cardDiv.textContent = formatCard(card);
 
       if (index === currentPlayerIndex) {
-  if (!HELP_MODE || canPlayCard(card)) {
-    cardDiv.onclick = () => playCard(index, cardIndex);
-    if (HELP_MODE && canPlayCard(card)) {
-      cardDiv.classList.add("playable");
-    }
-  } else {
-    cardDiv.classList.add("disabled");
-  }
-}
-    
-
+        if (!HELP_MODE || canPlayCard(card)) {
+          cardDiv.onclick = () => playCard(index, cardIndex);
+          if (HELP_MODE && canPlayCard(card)) {
+            cardDiv.classList.add("playable");
+          }
+        } else {
+          cardDiv.classList.add("disabled");
+        }
+      } else {
+        cardDiv.classList.add("disabled");
+      }
 
       handDiv.appendChild(cardDiv);
     });
 
     playerDiv.appendChild(handDiv);
+
+    // ✅ LÄGG KLART
+    if (index === currentPlayerIndex && currentDragSuit !== null) {
+      const doneBtn = document.createElement("button");
+      doneBtn.textContent = "Lägg klart";
+      doneBtn.onclick = endTurn;
+      playerDiv.appendChild(doneBtn);
+    }
 
     // 👉 TA UPP MITTEN
     if (index === currentPlayerIndex && !hasPlayableCard(player)) {
@@ -112,42 +105,46 @@ function renderGame() {
   });
 }
 
-// ===== LOGIK =====
+// ===== SPELLOGIK =====
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand.splice(cardIndex, 1)[0];
   tablePile.push(card);
-  if (currentDragSuit === null) {
-  currentDragSuit = card.suit;
-}
 
-  // Spader 2
+  if (currentDragSuit === null) {
+    currentDragSuit = card.suit; // 🔒 lås draget
+  }
+
+  // Spader 2 (behåll, men enkel)
   if (card.rank === 2 && card.suit === "spades") {
     const next = (playerIndex + 1) % players.length;
     takeTablePile(players[next]);
+    return;
   }
 
+  renderGame(); // ❗ byt INTE tur här
+}
+
+function endTurn() {
+  currentDragSuit = null;
   nextTurn();
 }
 
- function canPlayCard(card) {
+function canPlayCard(card) {
   if (currentDragSuit !== null) {
     return card.suit === currentDragSuit;
   }
-
   if (tablePile.length === 0) return true;
   return card.suit === tablePile.at(-1).suit;
 }
-
 
 function hasPlayableCard(player) {
   return player.hand.some(card => canPlayCard(card));
 }
 
-
 function takeTablePile(player) {
   player.hand.push(...tablePile);
-  tablePile = [];
   tablePile.length = 0;
+  currentDragSuit = null;
   nextTurn();
 }
 
@@ -161,7 +158,7 @@ function updateStatus() {
   status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
 }
 
-// ===== HJÄLP =====
+// ===== HJÄLPFUNKTIONER =====
 function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
   const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
@@ -196,9 +193,3 @@ function formatCard(card) {
   const s = { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" };
   return `${card.rank}${s[card.suit]}`;
 }
-
-function endTurn() {
-  currentDragSuit = null;
-  nextTurn();
-}
-
