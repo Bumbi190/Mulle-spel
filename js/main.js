@@ -6,6 +6,8 @@ let players = [];
 let deck = [];
 let tablePile = [];
 let currentPlayerIndex = 0;
+let currentDragSuit = null;
+
 
 // ===== UI =====
 const status = document.getElementById("status");
@@ -52,6 +54,13 @@ function renderGame() {
       table.appendChild(c);
     });
   }
+
+  if (index === currentPlayerIndex && currentDragSuit !== null) {
+  const doneBtn = document.createElement("button");
+  doneBtn.textContent = "Lägg klart";
+  doneBtn.onclick = () => endTurn();
+  playerDiv.appendChild(doneBtn);
+}
 
   gameArea.appendChild(table);
 
@@ -107,6 +116,9 @@ function renderGame() {
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand.splice(cardIndex, 1)[0];
   tablePile.push(card);
+  if (currentDragSuit === null) {
+  currentDragSuit = card.suit;
+}
 
   // Spader 2
   if (card.rank === 2 && card.suit === "spades") {
@@ -117,10 +129,15 @@ function playCard(playerIndex, cardIndex) {
   nextTurn();
 }
 
-function canPlayCard(card) {
+ function canPlayCard(card) {
+  if (currentDragSuit !== null) {
+    return card.suit === currentDragSuit;
+  }
+
   if (tablePile.length === 0) return true;
   return card.suit === tablePile.at(-1).suit;
 }
+
 
 function hasPlayableCard(player) {
   return player.hand.some(card => canPlayCard(card));
@@ -179,3 +196,9 @@ function formatCard(card) {
   const s = { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" };
   return `${card.rank}${s[card.suit]}`;
 }
+
+function endTurn() {
+  currentDragSuit = null;
+  nextTurn();
+}
+
