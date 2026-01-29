@@ -1,5 +1,5 @@
 const HELP_MODE = true;
-console.log("🔥 Mulle – Fängelseedition startar");
+console.log("Mulle - Fangeleseedition startar");
 
 // ===== GLOBAL STATE =====
 let players = [];
@@ -14,8 +14,8 @@ const gameArea = document.getElementById("game");
 
 // ===== START =====
 fetch("rules.json")
-  .then(res => res.json())
-  .then(rules => {
+  .then((res) => res.json())
+  .then((rules) => {
     deck = createDeck(rules.game.decks);
     shuffle(deck);
 
@@ -24,18 +24,21 @@ fetch("rules.json")
 
     updateStatus();
     renderGame();
+  })
+  .catch((err) => {
+    console.error("Kunde inte ladda rules.json:", err);
   });
 
 // ===== RENDER =====
 function renderGame() {
   gameArea.innerHTML = "";
 
-  // 🃏 MITTEN
+  // TABLE (MITTEN)
   const table = document.createElement("div");
   table.className = "table";
 
   if (tablePile.length === 0) {
-    table.textContent = "🃏 Mitten är tom";
+    table.textContent = "Mitten ar tom";
   } else {
     tablePile.forEach((card, i) => {
       const c = document.createElement("div");
@@ -49,14 +52,14 @@ function renderGame() {
 
   gameArea.appendChild(table);
 
-  // 👥 SPELARE
+  // PLAYERS
   players.forEach((player, index) => {
     const playerDiv = document.createElement("div");
     playerDiv.className = "player";
 
     const title = document.createElement("h3");
     title.textContent =
-      player.name + (index === currentPlayerIndex ? " ← TUR" : "");
+      player.name + (index === currentPlayerIndex ? " <- TUR" : "");
     playerDiv.appendChild(title);
 
     const handDiv = document.createElement("div");
@@ -71,11 +74,8 @@ function renderGame() {
         cardDiv.onclick = () => playCard(index, cardIndex);
 
         if (HELP_MODE) {
-          if (canPlayCard(card)) {
-            cardDiv.classList.add("playable");
-          } else {
-            cardDiv.classList.add("disabled");
-          }
+          if (canPlayCard(card)) cardDiv.classList.add("playable");
+          else cardDiv.classList.add("disabled");
         }
       } else {
         cardDiv.classList.add("disabled");
@@ -86,15 +86,15 @@ function renderGame() {
 
     playerDiv.appendChild(handDiv);
 
-    // ✅ LÄGG KLART
+    // DONE BUTTON (LAGG KLART)
     if (index === currentPlayerIndex && currentDragSuit !== null) {
       const doneBtn = document.createElement("button");
-      doneBtn.textContent = "Lägg klart";
+      doneBtn.textContent = "Lagg klart";
       doneBtn.onclick = endTurn;
       playerDiv.appendChild(doneBtn);
     }
 
-    // 👉 TA UPP MITTEN
+    // TAKE TABLE (TA UPP MITTEN)
     if (index === currentPlayerIndex && !hasPlayableCard(player)) {
       const btn = document.createElement("button");
       btn.textContent = "Ta upp mitten";
@@ -106,20 +106,17 @@ function renderGame() {
   });
 }
 
-// ===== SPELLOGIK =====
+// ===== GAME LOGIC =====
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand[cardIndex];
-
   if (!canPlayCard(card)) return;
 
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  if (currentDragSuit === null) {
-    currentDragSuit = card.suit;
-  }
+  if (currentDragSuit === null) currentDragSuit = card.suit;
 
-  renderGame(); // byt inte tur
+  renderGame(); // same player continues until "Lagg klart"
 }
 
 function endTurn() {
@@ -128,11 +125,9 @@ function endTurn() {
 }
 
 function canPlayCard(card) {
-  if (currentDragSuit !== null) {
-    return card.suit === currentDragSuit;
-  }
+  if (currentDragSuit !== null) return card.suit === currentDragSuit;
   if (tablePile.length === 0) return true;
-  return card.suit === tablePile.at(-1).suit;
+  return card.suit === tablePile[tablePile.length - 1].suit;
 }
 
 function hasPlayableCard(player) {
@@ -156,38 +151,41 @@ function updateStatus() {
   status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
 }
 
-// ===== HJÄLP =====
+// ===== HELPERS =====
 function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
-  const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
-  const deck = [];
+  const ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"];
+  const out = [];
+
   for (let d = 0; d < decks; d++) {
-    suits.forEach(s => ranks.forEach(r => deck.push({ suit: s, rank: r })));
+    for (const s of suits) {
+      for (const r of ranks) out.push({ suit: s, rank: r });
+    }
   }
-  return deck;
+  return out;
 }
 
-function shuffle(deck) {
-  for (let i = deck.length - 1; i > 0; i--) {
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
 function createPlayers(n) {
   return Array.from({ length: n }, (_, i) => ({
     name: `Spelare ${i + 1}`,
-    hand: []
+    hand: [],
   }));
 }
 
-function dealCards(deck, players, n) {
+function dealCards(deckArr, playersArr, n) {
   for (let i = 0; i < n; i++) {
-    players.forEach(p => p.hand.push(deck.pop()));
+    playersArr.forEach((p) => p.hand.push(deckArr.pop()));
   }
 }
 
 function formatCard(card) {
-  const s = { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" };
+  const s = { spades: "S", hearts: "H", diamonds: "D", clubs: "C" };
   return `${card.rank}${s[card.suit]}`;
 }
