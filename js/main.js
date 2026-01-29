@@ -26,8 +26,6 @@ fetch("rules.json")
     );
 
     updateStatus();
-    console.log(players);
-
     renderGame();
   });
 
