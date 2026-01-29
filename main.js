@@ -1,4 +1,5 @@
 console.log("Mulle – Fängelseedition startar");
+console.log("🔥 main.js laddad korrekt");
 
 const style = document.createElement("style");
 style.textContent = `
@@ -38,6 +39,7 @@ const status = document.getElementById("status");
 fetch("rules.json")
   .then(res => res.json())
   .then(rules => {
+  console.log("✅ Regler OK:", rules);
     deck = createDeck(rules.game.decks);
     shuffle(deck);
 
