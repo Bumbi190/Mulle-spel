@@ -68,18 +68,15 @@ function renderGame() {
       cardDiv.textContent = formatCard(card);
 
       if (index === currentPlayerIndex) {
-  cardDiv.onclick = () => playCard(index, cardIndex);
+        cardDiv.onclick = () => playCard(index, cardIndex);
 
-  if (HELP_MODE) {
-    if (canPlayCard(card)) {
-      cardDiv.classList.add("playable");
-    } else {
-      cardDiv.classList.add("disabled");
-    }
-  }
-} else {
-  cardDiv.classList.add("disabled");
-}
+        if (HELP_MODE) {
+          if (canPlayCard(card)) {
+            cardDiv.classList.add("playable");
+          } else {
+            cardDiv.classList.add("disabled");
+          }
+        }
       } else {
         cardDiv.classList.add("disabled");
       }
@@ -111,21 +108,24 @@ function renderGame() {
 
 // ===== SPELLOGIK =====
 function playCard(playerIndex, cardIndex) {
-  const card = players[playerIndex].hand.splice(cardIndex, 1)[0];
-  tablePile.push(card);
+  const card = players[playerIndex].hand[cardIndex];
 
-  if (currentDragSuit === null) {
-    currentDragSuit = card.suit; // 🔒 lås draget
-  }
-
-  // Spader 2 (behåll, men enkel)
-  if (card.rank === 2 && card.suit === "spades") {
-    const next = (playerIndex + 1) % players.length;
-    takeTablePile(players[next]);
+  // ❌ Stoppa ogiltiga drag (men låt spelaren testa!)
+  if (!canPlayCard(card)) {
+    console.log("❌ Ogiltigt kort");
     return;
   }
 
-  renderGame(); // ❗ byt INTE tur här
+  // ✅ Nu är draget giltigt → ta bort kortet
+  players[playerIndex].hand.splice(cardIndex, 1);
+  tablePile.push(card);
+
+  // 🔒 Lås färg efter första kortet
+  if (currentDragSuit === null) {
+    currentDragSuit = card.suit;
+  }
+
+  renderGame(); // byt INTE tur här
 }
 
 function endTurn() {
@@ -142,7 +142,7 @@ function canPlayCard(card) {
 }
 
 function hasPlayableCard(player) {
-  return player.hand.some(card => canPlayCard(card));
+  return player.hand.some(canPlayCard);
 }
 
 function takeTablePile(player) {
