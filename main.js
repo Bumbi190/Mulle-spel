@@ -1,41 +1,104 @@
 console.log("Mulle – Fängelseedition startar");
 
+// ===== GLOBAL STATE =====
+let players = [];
+let deck = [];
+let tablePile = [];
+let currentPlayerIndex = 0;
+
 // ===== UI STATUS =====
 const status = document.createElement("p");
-status.textContent = "Spelet är redo ✔️";
 document.body.appendChild(status);
 
 // ===== LÄS IN REGLER =====
 fetch("rules.json")
-  .then(response => response.json())
+  .then(res => res.json())
   .then(rules => {
-    console.log("Regler laddade:", rules);
-
-    // 1️⃣ SKAPA KORTLEK
-    let deck = createDeck(rules.game.decks);
-    console.log("Kortlek skapad:", deck.length);
-
-    // 2️⃣ BLANDA
+    deck = createDeck(rules.game.decks);
     shuffle(deck);
-    console.log("Kortlek blandad");
 
-    // 3️⃣ SKAPA SPELARE
-    const players = createPlayers(4);
-    console.log("Spelare skapade:", players);
-
-    // 4️⃣ DELA UT KORT
+    players = createPlayers(4);
     dealCards(deck, players, rules.game.startCards);
-    console.log("Efter utdelning:", players);
-    console.log("Kort kvar i leken:", deck.length);
 
-    // 5️⃣ RENDERA SPELET 🎉
-    renderPlayers(players);
-  })
-  .catch(err => console.error("Kunde inte läsa regler:", err));
+    status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
+
+    renderGame();
+  });
+
+// ===== RENDER GAME =====
+function renderGame() {
+  document.getElementById("game")?.remove();
+
+  const gameArea = document.createElement("div");
+  gameArea.id = "game";
+  document.body.appendChild(gameArea);
+
+  // 🔥 MITTEN
+  const table = document.createElement("div");
+  table.className = "table";
+
+  table.textContent =
+    tablePile.length === 0
+      ? "🃏 Mitten är tom"
+      : `Mitten: ${formatCard(tablePile.at(-1))}`;
+
+  gameArea.appendChild(table);
+
+  // 🧑‍🤝‍🧑 SPELARE
+  players.forEach((player, index) => {
+    const playerDiv = document.createElement("div");
+    playerDiv.className = "player";
+
+    const name = document.createElement("h3");
+    name.textContent =
+      player.name + (index === currentPlayerIndex ? " ← TUR" : "");
+    playerDiv.appendChild(name);
+
+    const handDiv = document.createElement("div");
+    handDiv.className = "hand";
+
+    player.hand.forEach((card, cardIndex) => {
+      const cardDiv = document.createElement("span");
+      cardDiv.className = "card";
+      cardDiv.textContent = formatCard(card);
+
+      // 🎯 SPELA KORT
+      if (index === currentPlayerIndex && canPlayCard(card)) {
+  cardDiv.onclick = () => playCard(index, cardIndex);
+} else {
+  cardDiv.style.opacity = "0.4";
+}
+
+
+      handDiv.appendChild(cardDiv);
+    });
+
+    playerDiv.appendChild(handDiv);
+    gameArea.appendChild(playerDiv);
+  });
+}
+
+// ===== SPELA KORT =====
+function playCard(playerIndex, cardIndex) {
+  const card = players[playerIndex].hand.splice(cardIndex, 1)[0];
+  tablePile.push(card);
+
+  currentPlayerIndex =
+    (currentPlayerIndex + 1) % players.length;
+
+  status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
+  renderGame();
+}
+
+function canPlayCard(card) {
+  if (tablePile.length === 0) return true;
+
+  const topCard = tablePile.at(-1);
+  return card.suit === topCard.suit;
+}
 
 
 // ===== FUNKTIONER =====
-
 function createDeck(decks = 2) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
   const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
@@ -59,65 +122,26 @@ function shuffle(deck) {
 }
 
 function createPlayers(count) {
-  const players = [];
-  for (let i = 1; i <= count; i++) {
-    players.push({
-      id: i,
-      name: `Spelare ${i}`,
-      hand: [],
-      score: 0
-    });
-  }
-  return players;
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    name: `Spelare ${i + 1}`,
+    hand: [],
+    score: 0
+  }));
 }
 
-function dealCards(deck, players, cardsPerPlayer = 5) {
-  for (let round = 0; round < cardsPerPlayer; round++) {
-    for (const player of players) {
-      player.hand.push(deck.pop());
-    }
+function dealCards(deck, players, cardsPerPlayer) {
+  for (let r = 0; r < cardsPerPlayer; r++) {
+    players.forEach(p => p.hand.push(deck.pop()));
   }
-}
-
-function renderPlayers(players) {
-  const gameArea = document.createElement("div");
-  gameArea.id = "game";
-  document.body.appendChild(gameArea);
-
-  players.forEach(player => {
-    const playerDiv = document.createElement("div");
-    playerDiv.className = "player";
-
-    const name = document.createElement("h3");
-    name.textContent = player.name;
-    playerDiv.appendChild(name);
-
-    const handDiv = document.createElement("div");
-    handDiv.className = "hand";
-
-    player.hand.forEach(card => {
-      const cardDiv = document.createElement("span");
-      cardDiv.className = "card";
-      cardDiv.textContent = formatCard(card);
-
-      cardDiv.onclick = () => {
-        console.log(`${player.name} klickade ${formatCard(card)}`);
-      };
-
-      handDiv.appendChild(cardDiv);
-    });
-
-    playerDiv.appendChild(handDiv);
-    gameArea.appendChild(playerDiv);
-  });
 }
 
 function formatCard(card) {
-  const suitSymbols = {
+  const suits = {
     spades: "♠",
     hearts: "♥",
     diamonds: "♦",
     clubs: "♣"
   };
-  return `${card.rank}${suitSymbols[card.suit]}`;
+  return `${card.rank}${suits[card.suit]}`;
 }
