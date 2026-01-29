@@ -73,8 +73,21 @@ function renderGame() {
       handDiv.appendChild(cardDiv);
     });
 
-    playerDiv.appendChild(handDiv);
-    gameArea.appendChild(playerDiv);
+  playerDiv.appendChild(handDiv);
+
+// 👉 KNAPP OM INGA GILTIGA KORT
+if (
+  index === currentPlayerIndex &&
+  !hasPlayableCard(player)
+) {
+  const takeButton = document.createElement("button");
+  takeButton.textContent = "Ta upp mitten";
+  takeButton.onclick = () => takeTablePile(player);
+  playerDiv.appendChild(takeButton);
+}
+
+gameArea.appendChild(playerDiv);
+
   });
 }
 
@@ -144,4 +157,25 @@ function formatCard(card) {
     clubs: "♣"
   };
   return `${card.rank}${suits[card.suit]}`;
+}
+
+function hasPlayableCard(player) {
+  return player.hand.some(card => canPlayCard(card));
+}
+
+function takeTablePile(player) {
+  player.hand.push(...tablePile);
+  tablePile.length = 0;
+
+  console.log(`${player.name} tog upp mitten`);
+
+  nextTurn();
+}
+
+function nextTurn() {
+  currentPlayerIndex =
+    (currentPlayerIndex + 1) % players.length;
+
+  status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
+  renderGame();
 }
