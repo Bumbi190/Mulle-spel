@@ -1,5 +1,29 @@
 console.log("Mulle – Fängelseedition startar");
 
+const style = document.createElement("style");
+style.textContent = `
+  .table {
+    position: relative;
+    width: 120px;
+    height: 160px;
+    border: 2px dashed #aaa;
+    margin: 20px 0;
+  }
+
+  .table-card {
+    width: 80px;
+    height: 120px;
+    background: white;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+`;
+document.head.appendChild(style);
+
+
 // ===== GLOBAL STATE =====
 let players = [];
 let deck = [];
@@ -34,15 +58,29 @@ function renderGame() {
   document.body.appendChild(gameArea);
 
   // 🔥 MITTEN
-  const table = document.createElement("div");
-  table.className = "table";
+ const table = document.createElement("div");
+table.className = "table";
 
-  table.textContent =
-    tablePile.length === 0
-      ? "🃏 Mitten är tom"
-      : `Mitten: ${formatCard(tablePile.at(-1))}`;
+if (tablePile.length === 0) {
+  table.textContent = "🃏 Mitten är tom";
+} else {
+  tablePile.forEach((card, index) => {
+    const cardDiv = document.createElement("div");
+    cardDiv.className = "table-card";
+    cardDiv.textContent = formatCard(card);
 
-  gameArea.appendChild(table);
+    // Stapel-effekt
+    cardDiv.style.position = "absolute";
+    cardDiv.style.top = `${index * 2}px`;
+    cardDiv.style.left = `${index * 2}px`;
+    cardDiv.style.zIndex = index;
+
+    table.appendChild(cardDiv);
+  });
+}
+
+gameArea.appendChild(table);
+
 
   // 🧑‍🤝‍🧑 SPELARE
   players.forEach((player, index) => {
