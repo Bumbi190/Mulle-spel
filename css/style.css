@@ -59,6 +59,13 @@ body {
 }
 
 .card.disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
+  filter: grayscale(100%);
 }
+
+.card.playable {
+  border-color: green;
+  box-shadow: 0 0 0 2px rgba(0, 128, 0, 0.4);
+}
+
