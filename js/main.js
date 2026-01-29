@@ -1,30 +1,5 @@
-console.log("🔥 main.js laddad");
-
 console.log("Mulle – Fängelseedition startar");
 console.log("🔥 main.js laddad korrekt");
-
-const style = document.createElement("style");
-style.textContent = `
-  .table {
-    position: relative;
-    width: 120px;
-    height: 160px;
-    border: 2px dashed #aaa;
-    margin: 20px 0;
-  }
-
-  .table-card {
-    width: 80px;
-    height: 120px;
-    background: white;
-    border: 1px solid black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-  }
-`;
-document.head.appendChild(style);
 
 
 // ===== GLOBAL STATE =====
