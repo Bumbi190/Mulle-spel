@@ -73,10 +73,12 @@ function renderGame() {
       cardDiv.textContent = formatCard(card);
 
       if (index === currentPlayerIndex && canPlayCard(card)) {
-        cardDiv.onclick = () => playCard(index, cardIndex);
-      } else {
-        cardDiv.style.opacity = "0.4";
-      }
+       cardDiv.classList.add("playable");
+       cardDiv.onclick = () => playCard(index, cardIndex);
+       } else {
+       cardDiv.classList.add("disabled");
+      }     
+
 
       handDiv.appendChild(cardDiv);
     });
