@@ -1,4 +1,4 @@
-const HELP_MODE = true; // sätt till false senare
+const HELP_MODE = true; // ← sätt false senare
 console.log("🔥 Mulle – Fängelseedition startar");
 
 // ===== GLOBAL STATE =====
@@ -86,7 +86,7 @@ function renderGame() {
 
     playerDiv.appendChild(handDiv);
 
-    // ✅ LÄGG KLART
+    // ✅ LÄGG KLART (endast om minst ett kort lagts)
     if (index === currentPlayerIndex && currentDragSuit !== null) {
       const doneBtn = document.createElement("button");
       doneBtn.textContent = "Lägg klart";
@@ -94,8 +94,12 @@ function renderGame() {
       playerDiv.appendChild(doneBtn);
     }
 
-    // 👉 TA UPP MITTEN
-    if (index === currentPlayerIndex && !hasPlayableCard(player)) {
+    // 👉 TA UPP MITTEN (endast om inget giltigt kort finns)
+    if (
+      index === currentPlayerIndex &&
+      currentDragSuit === null &&
+      !hasPlayableCard(player)
+    ) {
       const btn = document.createElement("button");
       btn.textContent = "Ta upp mitten";
       btn.onclick = () => takeTablePile(player);
@@ -110,22 +114,22 @@ function renderGame() {
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand[cardIndex];
 
-  // ❌ Stoppa ogiltiga drag (men låt spelaren testa!)
+  // ❌ Ogiltigt kort → gör inget (men låt klicket vara)
   if (!canPlayCard(card)) {
     console.log("❌ Ogiltigt kort");
     return;
   }
 
-  // ✅ Nu är draget giltigt → ta bort kortet
+  // ✅ Ta bort kortet
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  // 🔒 Lås färg efter första kortet
+  // 🔒 Lås färg första gången
   if (currentDragSuit === null) {
     currentDragSuit = card.suit;
   }
 
-  renderGame(); // byt INTE tur här
+  renderGame(); // ❗ byt INTE tur
 }
 
 function endTurn() {
@@ -167,8 +171,11 @@ function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
   const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
   const deck = [];
+
   for (let d = 0; d < decks; d++) {
-    suits.forEach(s => ranks.forEach(r => deck.push({ suit: s, rank: r })));
+    suits.forEach(s =>
+      ranks.forEach(r => deck.push({ suit: s, rank: r }))
+    );
   }
   return deck;
 }
@@ -194,6 +201,11 @@ function dealCards(deck, players, n) {
 }
 
 function formatCard(card) {
-  const s = { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" };
+  const s = {
+    spades: "♠",
+    hearts: "♥",
+    diamonds: "♦",
+    clubs: "♣"
+  };
   return `${card.rank}${s[card.suit]}`;
 }
