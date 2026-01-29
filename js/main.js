@@ -1,4 +1,4 @@
-const HELP_MODE = true; // sätt till false senare
+const HELP_MODE = true;
 console.log("🔥 Mulle – Fängelseedition startar");
 
 // ===== GLOBAL STATE =====
@@ -68,13 +68,14 @@ function renderGame() {
       cardDiv.textContent = formatCard(card);
 
       if (index === currentPlayerIndex) {
-        if (!HELP_MODE || canPlayCard(card)) {
-          cardDiv.onclick = () => playCard(index, cardIndex);
-          if (HELP_MODE && canPlayCard(card)) {
+        cardDiv.onclick = () => playCard(index, cardIndex);
+
+        if (HELP_MODE) {
+          if (canPlayCard(card)) {
             cardDiv.classList.add("playable");
+          } else {
+            cardDiv.classList.add("disabled");
           }
-        } else {
-          cardDiv.classList.add("disabled");
         }
       } else {
         cardDiv.classList.add("disabled");
@@ -85,7 +86,7 @@ function renderGame() {
 
     playerDiv.appendChild(handDiv);
 
-    // ✅ LÄGG KLART (flera kort per drag)
+    // ✅ LÄGG KLART
     if (index === currentPlayerIndex && currentDragSuit !== null) {
       const doneBtn = document.createElement("button");
       doneBtn.textContent = "Lägg klart";
@@ -109,19 +110,16 @@ function renderGame() {
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand[cardIndex];
 
-  if (!canPlayCard(card)) {
-    console.log("❌ Ogiltigt kort");
-    return;
-  }
+  if (!canPlayCard(card)) return;
 
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
   if (currentDragSuit === null) {
-    currentDragSuit = card.suit; // 🔒 lås färg
+    currentDragSuit = card.suit;
   }
 
-  renderGame(); // byt INTE tur
+  renderGame(); // byt inte tur
 }
 
 function endTurn() {
@@ -158,7 +156,7 @@ function updateStatus() {
   status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
 }
 
-// ===== HJÄLPFUNKTIONER =====
+// ===== HJÄLP =====
 function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
   const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
