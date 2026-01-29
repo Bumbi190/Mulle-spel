@@ -9,26 +9,29 @@ document.body.appendChild(status);
 fetch("rules.json")
   .then(response => response.json())
   .then(rules => {
-  console.log("Regler laddade:", rules);
+    console.log("Regler laddade:", rules);
 
-  // 1️⃣ SKAPA KORTLEK
-  let deck = createDeck(rules.game.decks);
-  console.log("Kortlek skapad:", deck.length);
+    // 1️⃣ SKAPA KORTLEK
+    let deck = createDeck(rules.game.decks);
+    console.log("Kortlek skapad:", deck.length);
 
-  // 2️⃣ BLANDA
-  shuffle(deck);
-  console.log("Kortlek blandad");
+    // 2️⃣ BLANDA
+    shuffle(deck);
+    console.log("Kortlek blandad");
 
-  // 3️⃣ SKAPA SPELARE
-  const players = createPlayers(4);
-  console.log("Spelare skapade:", players);
+    // 3️⃣ SKAPA SPELARE
+    const players = createPlayers(4);
+    console.log("Spelare skapade:", players);
 
-  // 4️⃣ DELA UT KORT
-  dealCards(deck, players, rules.game.startCards);
-  console.log("Efter utdelning:", players);
+    // 4️⃣ DELA UT KORT
+    dealCards(deck, players, rules.game.startCards);
+    console.log("Efter utdelning:", players);
+    console.log("Kort kvar i leken:", deck.length);
 
-  console.log("Kort kvar i leken:", deck.length);
-});
+    // 5️⃣ RENDERA SPELET 🎉
+    renderPlayers(players);
+  })
+  .catch(err => console.error("Kunde inte läsa regler:", err));
 
 
 // ===== FUNKTIONER =====
@@ -45,7 +48,6 @@ function createDeck(decks = 2) {
       }
     }
   }
-
   return deck;
 }
 
@@ -58,7 +60,6 @@ function shuffle(deck) {
 
 function createPlayers(count) {
   const players = [];
-
   for (let i = 1; i <= count; i++) {
     players.push({
       id: i,
@@ -67,7 +68,6 @@ function createPlayers(count) {
       score: 0
     });
   }
-
   return players;
 }
 
@@ -77,4 +77,47 @@ function dealCards(deck, players, cardsPerPlayer = 5) {
       player.hand.push(deck.pop());
     }
   }
+}
+
+function renderPlayers(players) {
+  const gameArea = document.createElement("div");
+  gameArea.id = "game";
+  document.body.appendChild(gameArea);
+
+  players.forEach(player => {
+    const playerDiv = document.createElement("div");
+    playerDiv.className = "player";
+
+    const name = document.createElement("h3");
+    name.textContent = player.name;
+    playerDiv.appendChild(name);
+
+    const handDiv = document.createElement("div");
+    handDiv.className = "hand";
+
+    player.hand.forEach(card => {
+      const cardDiv = document.createElement("span");
+      cardDiv.className = "card";
+      cardDiv.textContent = formatCard(card);
+
+      cardDiv.onclick = () => {
+        console.log(`${player.name} klickade ${formatCard(card)}`);
+      };
+
+      handDiv.appendChild(cardDiv);
+    });
+
+    playerDiv.appendChild(handDiv);
+    gameArea.appendChild(playerDiv);
+  });
+}
+
+function formatCard(card) {
+  const suitSymbols = {
+    spades: "♠",
+    hearts: "♥",
+    diamonds: "♦",
+    clubs: "♣"
+  };
+  return `${card.rank}${suitSymbols[card.suit]}`;
 }
