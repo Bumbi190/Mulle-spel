@@ -38,8 +38,14 @@ function renderGame() {
   table.className = "table";
 
   if (tablePile.length === 0) {
-    table.textContent = "Mitten ar tom";
-  } else {
+  const hint = document.createElement("div");
+  hint.textContent = "🃏 Lägg ett kort";
+  hint.style.opacity = "0.6";
+  hint.style.fontSize = "14px";
+  table.appendChild(hint);
+}
+
+  else {
     tablePile.forEach((card, i) => {
       const c = document.createElement("div");
       c.className = "table-card";
