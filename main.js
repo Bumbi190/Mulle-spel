@@ -31,8 +31,8 @@ let tablePile = [];
 let currentPlayerIndex = 0;
 
 // ===== UI STATUS =====
-const status = document.createElement("p");
-document.body.appendChild(status);
+const status = document.getElementById("status");
+
 
 // ===== LÄS IN REGLER =====
 fetch("rules.json")
