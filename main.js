@@ -134,12 +134,26 @@ function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand.splice(cardIndex, 1)[0];
   tablePile.push(card);
 
+  // 👉 SPADER 2-REGEL
+  if (card.rank === 2 && card.suit === "spades") {
+    const nextPlayerIndex =
+      (playerIndex + 1) % players.length;
+
+    console.log(
+      `${players[nextPlayerIndex].name} måste ta upp mitten (Spader 2)`
+    );
+
+    takeTablePile(players[nextPlayerIndex]);
+  }
+
+  // Nästa tur
   currentPlayerIndex =
     (currentPlayerIndex + 1) % players.length;
 
   status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
   renderGame();
 }
+
 
 function canPlayCard(card) {
   if (tablePile.length === 0) return true;
