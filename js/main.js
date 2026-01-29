@@ -23,6 +23,11 @@ fetch("rules.json")
     players = createPlayers(4);
     dealCards(deck, players, 5);
 
+    console.log(
+  players.map(p => `${p.name}: ${p.hand.map(formatCard).join(" ")}`)
+);
+
+
 
     status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
 
@@ -31,11 +36,9 @@ fetch("rules.json")
 
 // ===== RENDER GAME =====
 function renderGame() {
-  document.getElementById("game")?.remove();
+  const gameArea = document.getElementById("game");
+gameArea.innerHTML = "";
 
-  const gameArea = document.createElement("div");
-  gameArea.id = "game";
-  document.body.appendChild(gameArea);
 
   // 🔥 MITTEN
  const table = document.createElement("div");
