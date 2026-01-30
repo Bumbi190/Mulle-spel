@@ -178,6 +178,12 @@ function playCard(playerIndex, cardIndex) {
   player.hand.splice(cardIndex, 1);
   tablePile.push(card);
 
+  if (player.hand.length === 0) {
+  endRound(playerIndex);
+  return;
+}
+
+
   // Grundpoäng för kortet
 player.score += calculateCardPoints(card);
 
@@ -323,4 +329,39 @@ function calculateCardPoints(card) {
   if (card.rank === 10 && card.suit === "diamonds") points += 2;
 
   return points;
+}
+
+function endRound(winnerIndex) {
+  // sista tabben
+  players[winnerIndex].score += 1;
+
+  players.forEach((p, i) => {
+_toggle: if (i === winnerIndex) return;
+
+    p.hand.forEach(card => {
+      const penalty = calculateCardPoints(card);
+      p.score -= penalty;
+      players[winnerIndex].score += penalty;
+    });
+  });
+
+  alert(`${players[winnerIndex].name} gick ut! Ny runda.`);
+  startNewRound();
+}
+
+function startNewRound() {
+  deck = createDeck(2);
+  shuffle(deck);
+  tablePile = [];
+  currentDragSuit = null;
+  choosingSuit = false;
+
+  players.forEach(p => {
+    p.hand = [];
+  });
+
+  dealCards(deck, players, 5);
+  currentPlayerIndex = 0;
+  updateStatus();
+  renderGame();
 }
