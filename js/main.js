@@ -205,3 +205,12 @@ function formatCard(card) {
 
   return `${card.rank}${suitSymbols[card.suit]}`;
 }
+
+function getSuitSymbol(suit) {
+  return {
+    spades: "♠",
+    hearts: "♥",
+    diamonds: "♦",
+    clubs: "♣",
+  }[suit];
+}
