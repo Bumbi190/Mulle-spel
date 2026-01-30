@@ -104,3 +104,13 @@ body {
 .table {
   margin: 30px auto;
 }
+
+.card.hearts,
+.card.diamonds {
+  color: #c0392b;
+}
+
+.card.spades,
+.card.clubs {
+  color: #2c3e50;
+}
