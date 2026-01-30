@@ -83,12 +83,29 @@ gameArea.appendChild(table);
     handDiv.className = "hand";
 
     player.hand.forEach((card, cardIndex) => {
-      const cardDiv = document.createElement("div");
-     cardDiv.className = `card ${card.suit}`;
-      cardDiv.innerHTML = `
-  <span class="rank">${card.rank}</span>
-  <span class="suit">${getSuitSymbol(card.suit)}</span>
-`;
+  const cardDiv = document.createElement("div");
+  cardDiv.className = `card ${card.suit}`;
+
+  cardDiv.innerHTML = `
+    <span class="rank">${card.rank}</span>
+    <span class="suit">${getSuitSymbol(card.suit)}</span>
+  `;
+
+  // ✅ HÄR ÄR NYCKELN – drag-indikatorn
+  if (index === currentPlayerIndex) {
+    if (canPlayCard(card)) {
+      cardDiv.onclick = () => playCard(index, cardIndex);
+      cardDiv.classList.add("playable");
+    } else {
+      cardDiv.classList.add("disabled");
+    }
+  } else {
+    cardDiv.classList.add("disabled");
+  }
+
+  handDiv.appendChild(cardDiv);
+});
+
 
 
       if (index === currentPlayerIndex) {
