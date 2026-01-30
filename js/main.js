@@ -119,20 +119,36 @@ function playCard(playerIndex, cardIndex) {
 
   if (!canPlayCard(card)) return;
 
+  // Ta bort kortet från handen
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
+  // Lås färg vid första kortet
   if (currentDragSuit === null) {
     currentDragSuit = card.suit;
+  }
+
+  // 🟥 SPADER 2 – nästa spelare tar mitten
+  if (card.rank === 2 && card.suit === "spades") {
+    const nextPlayer =
+      players[(currentPlayerIndex + 1) % players.length];
+
+    nextPlayer.hand.push(...tablePile);
+    tablePile.length = 0;
+    currentDragSuit = null;
+
+    // hoppa vidare till nästa efter den drabbade
+    currentPlayerIndex =
+      (currentPlayerIndex + 2) % players.length;
+
+    updateStatus();
+    renderGame();
+    return;
   }
 
   renderGame(); // samma spelare fortsätter
 }
 
-function endTurn() {
-  currentDragSuit = null;
-  nextTurn();
-}
 
 function canPlayCard(card) {
   if (currentDragSuit !== null) return card.suit === currentDragSuit;
