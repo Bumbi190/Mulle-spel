@@ -42,7 +42,7 @@ if (tablePile.length === 0) {
 } else {
   tablePile.forEach((card, i) => {
     const c = document.createElement("div");
-    c.className = "table-card";
+    c.className = `table-card ${card.suit}`;
     c.textContent = formatCard(card);
 
     // liten offset så det ser staplat ut
