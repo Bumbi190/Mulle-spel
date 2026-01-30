@@ -114,3 +114,18 @@ body {
 .card.clubs {
   color: #2c3e50;
 }
+
+.card {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card .rank {
+  font-size: 18px;
+}
+
+.card .suit {
+  font-size: 22px;
+  line-height: 1;
+}
+
