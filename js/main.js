@@ -70,7 +70,7 @@ gameArea.appendChild(table);
 
     player.hand.forEach((card, cardIndex) => {
       const cardDiv = document.createElement("div");
-      cardDiv.className = "card";
+     cardDiv.className = `card ${card.suit}`;
       cardDiv.textContent = formatCard(card);
 
       if (index === currentPlayerIndex) {
