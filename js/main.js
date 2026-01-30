@@ -7,6 +7,8 @@ let deck = [];
 let tablePile = [];
 let currentPlayerIndex = 0;
 let currentDragSuit = null;
+let choosingSuit = false;
+
 
 // ===== UI =====
 const status = document.getElementById("status");
@@ -60,6 +62,25 @@ function renderGame() {
     dragInfo.textContent = `Du lägger ${getSuitSymbol(currentDragSuit)}`;
     gameArea.appendChild(dragInfo);
   }
+
+  if (choosingSuit) {
+  const suitPicker = document.createElement("div");
+  suitPicker.className = "suit-picker";
+
+  ["hearts", "diamonds", "clubs", "spades"].forEach((suit) => {
+    const btn = document.createElement("button");
+    btn.textContent = getSuitSymbol(suit);
+    btn.onclick = () => {
+      currentDragSuit = suit;
+      choosingSuit = false;
+      renderGame();
+    };
+    suitPicker.appendChild(btn);
+  });
+
+  gameArea.appendChild(suitPicker);
+}
+
 
   // ===== SPELARE =====
   players.forEach((player, index) => {
@@ -126,9 +147,19 @@ function playCard(playerIndex, cardIndex) {
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  if (currentDragSuit === null) {
-    currentDragSuit = card.suit;
-  }
+  // ESS = välj ny färg
+if (card.rank === "A") {
+  choosingSuit = true;
+  currentDragSuit = null;
+  renderGame();
+  return;
+}
+
+// Lås färg vid första kortet
+if (currentDragSuit === null) {
+  currentDragSuit = card.suit;
+}
+
 
   // 🟥 SPADER 2
   if (card.rank === 2 && card.suit === "spades") {
