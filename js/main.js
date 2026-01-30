@@ -1,24 +1,28 @@
 const HELP_MODE = true;
-console.log("Mulle – Fängelseedition startar");
+console.log("🔥 Mulle – Fängelseedition startar");
 
-// ===== GLOBAL STATE =====
+// ================= GLOBAL STATE =================
 let players = [];
 let deck = [];
 let tablePile = [];
 let currentPlayerIndex = 0;
+
 let currentDragSuit = null;
 let choosingSuit = false;
 
+// MULLE
+let mustCallMulle = false;
+let mulleCalled = false;
 
-// ===== UI =====
+// ================= UI =================
 const status = document.getElementById("status");
 const gameArea = document.getElementById("game");
 
-// ===== START =====
+// ================= START =================
 fetch("rules.json")
   .then(res => res.json())
   .then(rules => {
-    deck = createDeck(rules.game.decks);
+    deck = createDeck(rules.game.decks || 2);
     shuffle(deck);
 
     players = createPlayers(4);
@@ -26,10 +30,9 @@ fetch("rules.json")
 
     updateStatus();
     renderGame();
-  })
-  .catch(err => console.error("Kunde inte ladda rules.json:", err));
+  });
 
-// ===== RENDER =====
+// ================= RENDER =================
 function renderGame() {
   gameArea.innerHTML = "";
 
@@ -56,31 +59,31 @@ function renderGame() {
   gameArea.appendChild(table);
 
   // ===== DRAG-INDIKATOR =====
-  if (currentDragSuit !== null) {
+  if (currentDragSuit) {
     const dragInfo = document.createElement("div");
     dragInfo.className = "drag-indicator";
     dragInfo.textContent = `Du lägger ${getSuitSymbol(currentDragSuit)}`;
     gameArea.appendChild(dragInfo);
   }
 
+  // ===== ESS – VÄLJ FÄRG =====
   if (choosingSuit) {
-  const suitPicker = document.createElement("div");
-  suitPicker.className = "suit-picker";
+    const suitPicker = document.createElement("div");
+    suitPicker.className = "suit-picker";
 
-  ["hearts", "diamonds", "clubs", "spades"].forEach((suit) => {
-    const btn = document.createElement("button");
-    btn.textContent = getSuitSymbol(suit);
-    btn.onclick = () => {
-      currentDragSuit = suit;
-      choosingSuit = false;
-      renderGame();
-    };
-    suitPicker.appendChild(btn);
-  });
+    ["hearts", "diamonds", "clubs", "spades"].forEach(suit => {
+      const btn = document.createElement("button");
+      btn.textContent = getSuitSymbol(suit);
+      btn.onclick = () => {
+        currentDragSuit = suit;
+        choosingSuit = false;
+        renderGame();
+      };
+      suitPicker.appendChild(btn);
+    });
 
-  gameArea.appendChild(suitPicker);
-}
-
+    gameArea.appendChild(suitPicker);
+  }
 
   // ===== SPELARE =====
   players.forEach((player, index) => {
@@ -119,7 +122,19 @@ function renderGame() {
 
     playerDiv.appendChild(handDiv);
 
-    // ===== LÄGG KLART =====
+    // ===== MULLE-KNAPP =====
+    if (index === currentPlayerIndex && mustCallMulle && !mulleCalled) {
+      const mulleBtn = document.createElement("button");
+      mulleBtn.textContent = "MULLE";
+      mulleBtn.className = "mulle-btn";
+      mulleBtn.onclick = () => {
+        mulleCalled = true;
+        renderGame();
+      };
+      playerDiv.appendChild(mulleBtn);
+    }
+
+    // ===== AVSLUTA DRAG =====
     if (index === currentPlayerIndex && currentDragSuit !== null) {
       const doneBtn = document.createElement("button");
       doneBtn.textContent = "Avsluta drag";
@@ -139,15 +154,20 @@ function renderGame() {
   });
 }
 
-// ===== GAME LOGIC =====
+// ================= GAME LOGIC =================
 function playCard(playerIndex, cardIndex) {
-  const card = players[playerIndex].hand[cardIndex];
+  const player = players[playerIndex];
+  const card = player.hand[cardIndex];
   if (!canPlayCard(card)) return;
 
-  players[playerIndex].hand.splice(cardIndex, 1);
+  player.hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  // 🔟 RUTER 10 – rensa mitten
+  // ===== MULLE CHECK =====
+  mustCallMulle = player.hand.length === 1;
+  mulleCalled = false;
+
+  // 🔟 RUTER 10 – TABBE
   if (card.rank === 10 && card.suit === "diamonds") {
     tablePile.length = 0;
     currentDragSuit = null;
@@ -155,24 +175,21 @@ function playCard(playerIndex, cardIndex) {
     return;
   }
 
-  // 🟥 SPADER 2 – nästa tar mitten
+  // 🟥 SPADER 2 – NÄSTA TAR MITTEN
   if (card.rank === 2 && card.suit === "spades") {
-    const next =
-      players[(currentPlayerIndex + 1) % players.length];
+    const victimIndex = (currentPlayerIndex + 1) % players.length;
+    players[victimIndex].hand.push(...tablePile);
 
-    next.hand.push(...tablePile);
     tablePile.length = 0;
     currentDragSuit = null;
 
-    currentPlayerIndex =
-      (currentPlayerIndex + 2) % players.length;
-
+    currentPlayerIndex = (currentPlayerIndex + 2) % players.length;
     updateStatus();
     renderGame();
     return;
   }
 
-  // 🅰️ ESS – välj ny färg
+  // 🅰️ ESS – VÄLJ FÄRG
   if (card.rank === "A") {
     choosingSuit = true;
     currentDragSuit = null;
@@ -180,22 +197,29 @@ function playCard(playerIndex, cardIndex) {
     return;
   }
 
-  // 🎯 VANLIGT KORT → lås färg
-  if (currentDragSuit === null) {
+  // 🔒 LÅS FÄRG
+  if (!currentDragSuit) {
     currentDragSuit = card.suit;
   }
 
   renderGame();
 }
 
-
 function endTurn() {
+  // Straff om MULLE glömdes
+  if (mustCallMulle && !mulleCalled) {
+    players[currentPlayerIndex].hand.push(...tablePile);
+    tablePile.length = 0;
+  }
+
+  mustCallMulle = false;
+  mulleCalled = false;
   currentDragSuit = null;
   nextTurn();
 }
 
 function canPlayCard(card) {
-  if (currentDragSuit !== null) return card.suit === currentDragSuit;
+  if (currentDragSuit) return card.suit === currentDragSuit;
   if (tablePile.length === 0) return true;
   return card.suit === tablePile[tablePile.length - 1].suit;
 }
@@ -221,11 +245,12 @@ function updateStatus() {
   status.textContent = `Tur: ${players[currentPlayerIndex].name}`;
 }
 
-// ===== HELPERS =====
+// ================= HELPERS =================
 function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
   const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
   const out = [];
+
   for (let d = 0; d < decks; d++) {
     for (const s of suits) {
       for (const r of ranks) out.push({ suit: s, rank: r });
@@ -244,7 +269,7 @@ function shuffle(arr) {
 function createPlayers(n) {
   return Array.from({ length: n }, (_, i) => ({
     name: `Spelare ${i + 1}`,
-    hand: [],
+    hand: []
   }));
 }
 
