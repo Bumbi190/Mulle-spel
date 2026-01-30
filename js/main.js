@@ -36,6 +36,19 @@ fetch("rules.json")
 function renderGame() {
   gameArea.innerHTML = "";
 
+  // ===== SCOREBOARD =====
+const scoreBoard = document.createElement("div");
+scoreBoard.className = "scoreboard";
+
+players.forEach(p => {
+  const row = document.createElement("div");
+  row.textContent = `${p.name}: ${p.score}p`;
+  scoreBoard.appendChild(row);
+});
+
+gameArea.appendChild(scoreBoard);
+
+
   // ===== MITTEN =====
   const table = document.createElement("div");
   table.className = "table";
@@ -169,17 +182,21 @@ function playCard(playerIndex, cardIndex) {
 
   // 🔟 RUTER 10 – TABBE
   if (card.rank === 10 && card.suit === "diamonds") {
-    tablePile.length = 0;
-    currentDragSuit = null;
-    nextTurn();
-    return;
-  }
+  players[playerIndex].score += 2; // ruter 10
+  players[playerIndex].score += 1; // tabbe
+  tablePile.length = 0;
+  currentDragSuit = null;
+  nextTurn();
+  return;
+}
+
 
   // 🟥 SPADER 2 – NÄSTA TAR MITTEN
   if (card.rank === 2 && card.suit === "spades") {
     const victimIndex = (currentPlayerIndex + 1) % players.length;
     players[victimIndex].hand.push(...tablePile);
 
+    players[playerIndex].score += 2; // spader 2
     tablePile.length = 0;
     currentDragSuit = null;
 
@@ -269,9 +286,12 @@ function shuffle(arr) {
 function createPlayers(n) {
   return Array.from({ length: n }, (_, i) => ({
     name: `Spelare ${i + 1}`,
-    hand: []
+    hand: [],
+    score: 0,
+    takenCards: [] // kort spelaren tagit (för poängräkning)
   }));
 }
+
 
 function dealCards(deckArr, playersArr, n) {
   for (let i = 0; i < n; i++) {
@@ -281,4 +301,15 @@ function dealCards(deckArr, playersArr, n) {
 
 function getSuitSymbol(suit) {
   return { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" }[suit];
+}
+
+function calculateCardPoints(card) {
+  let points = 0;
+
+  if (card.suit === "spades") points += 1;
+  if (card.rank === "A") points += 1;
+  if (card.rank === 2 && card.suit === "spades") points += 2;
+  if (card.rank === 10 && card.suit === "diamonds") points += 2;
+
+  return points;
 }
