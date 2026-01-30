@@ -147,17 +147,17 @@ function playCard(playerIndex, cardIndex) {
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  // ESS = välj ny färg
-if (card.rank === "A") {
-  choosingSuit = true;
-  currentDragSuit = null;
-  renderGame();
-  return;
-}
-
 // Lås färg vid första kortet
 if (currentDragSuit === null) {
   currentDragSuit = card.suit;
+}
+
+ // 🔟 RUTER 10 – rensa mitten
+if (card.rank === 10 && card.suit === "diamonds") {
+  tablePile.length = 0;
+  currentDragSuit = null;
+  nextTurn();
+  return;
 }
 
 
@@ -177,6 +177,14 @@ if (currentDragSuit === null) {
     renderGame();
     return;
   }
+
+    // ESS = välj ny färg
+if (card.rank === "A") {
+  choosingSuit = true;
+  currentDragSuit = null;
+  renderGame();
+  return;
+}
 
   renderGame();
 }
