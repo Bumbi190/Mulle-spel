@@ -1,5 +1,5 @@
 const HELP_MODE = true;
-console.log("Mulle - Fangeleseedition startar");
+console.log("Mulle – Fängelseedition startar");
 
 // ===== GLOBAL STATE =====
 let players = [];
@@ -14,8 +14,8 @@ const gameArea = document.getElementById("game");
 
 // ===== START =====
 fetch("rules.json")
-  .then((res) => res.json())
-  .then((rules) => {
+  .then(res => res.json())
+  .then(rules => {
     deck = createDeck(rules.game.decks);
     shuffle(deck);
 
@@ -25,95 +25,69 @@ fetch("rules.json")
     updateStatus();
     renderGame();
   })
-  .catch((err) => {
-    console.error("Kunde inte ladda rules.json:", err);
-  });
-
-function endTurn() {
-  currentDragSuit = null;
-  nextTurn();
-}
-
+  .catch(err => console.error("Kunde inte ladda rules.json:", err));
 
 // ===== RENDER =====
 function renderGame() {
   gameArea.innerHTML = "";
 
-  // 🃏 MITTEN
-const table = document.createElement("div");
-table.className = "table";
+  // ===== MITTEN =====
+  const table = document.createElement("div");
+  table.className = "table";
 
-if (tablePile.length === 0) {
-  table.textContent = "Mitten är tom";
-} else {
-  tablePile.forEach((card, i) => {
-    const c = document.createElement("div");
-    c.className = `table-card ${card.suit}`;
-    c.textContent = formatCard(card);
+  if (tablePile.length === 0) {
+    table.textContent = "Mitten är tom";
+  } else {
+    tablePile.forEach((card, i) => {
+      const c = document.createElement("div");
+      c.className = `table-card ${card.suit}`;
+      c.innerHTML = `
+        <span class="rank">${card.rank}</span>
+        <span class="suit">${getSuitSymbol(card.suit)}</span>
+      `;
+      c.style.top = `${i * 2}px`;
+      c.style.left = `${i * 2}px`;
+      table.appendChild(c);
+    });
+  }
 
-    // liten offset så det ser staplat ut
-    c.style.top = `${i * 2}px`;
-    c.style.left = `${i * 2}px`;
+  gameArea.appendChild(table);
 
-    table.appendChild(c);
-  });
-}
-
-gameArea.appendChild(table);
-
+  // ===== DRAG-INDIKATOR =====
   if (currentDragSuit !== null) {
-  const dragInfo = document.createElement("div");
-  dragInfo.className = "drag-indicator";
-  dragInfo.textContent = `Du lägger ${getSuitSymbol(currentDragSuit)}`;
-  gameArea.appendChild(dragInfo);
-}
+    const dragInfo = document.createElement("div");
+    dragInfo.className = "drag-indicator";
+    dragInfo.textContent = `Du lägger ${getSuitSymbol(currentDragSuit)}`;
+    gameArea.appendChild(dragInfo);
+  }
 
-
-  // PLAYERS
+  // ===== SPELARE =====
   players.forEach((player, index) => {
     const playerDiv = document.createElement("div");
     playerDiv.className = "player";
 
     const title = document.createElement("h3");
     title.textContent =
-      player.name + (index === currentPlayerIndex ? " <- TUR" : "");
+      player.name + (index === currentPlayerIndex ? " ← TUR" : "");
     playerDiv.appendChild(title);
 
     const handDiv = document.createElement("div");
     handDiv.className = "hand";
 
     player.hand.forEach((card, cardIndex) => {
-  const cardDiv = document.createElement("div");
-  cardDiv.className = `card ${card.suit}`;
-
-  cardDiv.innerHTML = `
-    <span class="rank">${card.rank}</span>
-    <span class="suit">${getSuitSymbol(card.suit)}</span>
-  `;
-
-  // ✅ HÄR ÄR NYCKELN – drag-indikatorn
-  if (index === currentPlayerIndex) {
-    if (canPlayCard(card)) {
-      cardDiv.onclick = () => playCard(index, cardIndex);
-      cardDiv.classList.add("playable");
-    } else {
-      cardDiv.classList.add("disabled");
-    }
-  } else {
-    cardDiv.classList.add("disabled");
-  }
-
-  handDiv.appendChild(cardDiv);
-});
-
-
+      const cardDiv = document.createElement("div");
+      cardDiv.className = `card ${card.suit}`;
+      cardDiv.innerHTML = `
+        <span class="rank">${card.rank}</span>
+        <span class="suit">${getSuitSymbol(card.suit)}</span>
+      `;
 
       if (index === currentPlayerIndex) {
-        cardDiv.onclick = () => playCard(index, cardIndex);
-
-        if (HELP_MODE) {
-          if (canPlayCard(card)) cardDiv.classList.add("playable");
-          else cardDiv.classList.add("disabled");
+        if (canPlayCard(card)) {
+          cardDiv.onclick = () => playCard(index, cardIndex);
+          cardDiv.classList.add("playable");
+        } else {
+          cardDiv.classList.add("disabled");
         }
       } else {
         cardDiv.classList.add("disabled");
@@ -124,22 +98,21 @@ gameArea.appendChild(table);
 
     playerDiv.appendChild(handDiv);
 
-    // DONE BUTTON (LAGG KLART)
+    // ===== LÄGG KLART =====
     if (index === currentPlayerIndex && currentDragSuit !== null) {
       const doneBtn = document.createElement("button");
-      doneBtn.textContent = "Lagg klart";
+      doneBtn.textContent = "Avsluta drag";
       doneBtn.onclick = endTurn;
       playerDiv.appendChild(doneBtn);
     }
 
-    // TAKE TABLE (TA UPP MITTEN)
+    // ===== TA UPP MITTEN =====
     if (index === currentPlayerIndex && !hasPlayableCard(player)) {
-  const btn = document.createElement("button");
-  btn.textContent = "Ta upp mitten";
-  btn.onclick = () => takeTablePile(index);
-  playerDiv.appendChild(btn);
-}
-
+      const btn = document.createElement("button");
+      btn.textContent = "Ta upp mitten";
+      btn.onclick = () => takeTablePile(index);
+      playerDiv.appendChild(btn);
+    }
 
     gameArea.appendChild(playerDiv);
   });
@@ -148,34 +121,24 @@ gameArea.appendChild(table);
 // ===== GAME LOGIC =====
 function playCard(playerIndex, cardIndex) {
   const card = players[playerIndex].hand[cardIndex];
-
   if (!canPlayCard(card)) return;
 
-  // Ta bort kortet från handen
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-  // Lås färg vid första kortet
   if (currentDragSuit === null) {
     currentDragSuit = card.suit;
   }
 
-  function endTurn() {
-  currentDragSuit = null;
-  nextTurn();
-}
-
-
-  // 🟥 SPADER 2 – nästa spelare tar mitten
+  // 🟥 SPADER 2
   if (card.rank === 2 && card.suit === "spades") {
-    const nextPlayer =
+    const next =
       players[(currentPlayerIndex + 1) % players.length];
 
-    nextPlayer.hand.push(...tablePile);
+    next.hand.push(...tablePile);
     tablePile.length = 0;
     currentDragSuit = null;
 
-    // hoppa vidare till nästa efter den drabbade
     currentPlayerIndex =
       (currentPlayerIndex + 2) % players.length;
 
@@ -184,9 +147,13 @@ function playCard(playerIndex, cardIndex) {
     return;
   }
 
-  renderGame(); // samma spelare fortsätter
+  renderGame();
 }
 
+function endTurn() {
+  currentDragSuit = null;
+  nextTurn();
+}
 
 function canPlayCard(card) {
   if (currentDragSuit !== null) return card.suit === currentDragSuit;
@@ -205,7 +172,6 @@ function takeTablePile(playerIndex) {
   nextTurn();
 }
 
-
 function nextTurn() {
   currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
   updateStatus();
@@ -219,9 +185,8 @@ function updateStatus() {
 // ===== HELPERS =====
 function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
-  const ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"];
+  const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
   const out = [];
-
   for (let d = 0; d < decks; d++) {
     for (const s of suits) {
       for (const r of ranks) out.push({ suit: s, rank: r });
@@ -246,26 +211,10 @@ function createPlayers(n) {
 
 function dealCards(deckArr, playersArr, n) {
   for (let i = 0; i < n; i++) {
-    playersArr.forEach((p) => p.hand.push(deckArr.pop()));
+    playersArr.forEach(p => p.hand.push(deckArr.pop()));
   }
 }
 
-function formatCard(card) {
-  const suitSymbols = {
-    spades: "♠",
-    hearts: "♥",
-    diamonds: "♦",
-    clubs: "♣"
-  };
-
-  return `${card.rank}${suitSymbols[card.suit]}`;
-}
-
 function getSuitSymbol(suit) {
-  return {
-    spades: "♠",
-    hearts: "♥",
-    diamonds: "♦",
-    clubs: "♣",
-  }[suit];
+  return { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" }[suit];
 }
