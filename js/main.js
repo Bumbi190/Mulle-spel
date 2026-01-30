@@ -141,7 +141,7 @@ gameArea.appendChild(table);
     }
 
     gameArea.appendChild(playerDiv);
-  });
+  };
 }
 
 // ===== GAME LOGIC =====
