@@ -33,30 +33,27 @@ fetch("rules.json")
 function renderGame() {
   gameArea.innerHTML = "";
 
-  // TABLE (MITTEN)
-  const table = document.createElement("div");
-  table.className = "table";
+  // 🃏 MITTEN
+const table = document.createElement("div");
+table.className = "table";
 
-  if (tablePile.length === 0) {
-  const hint = document.createElement("div");
-  hint.textContent = "🃏 Lägg ett kort";
-  hint.style.opacity = "0.6";
-  hint.style.fontSize = "14px";
-  table.appendChild(hint);
+if (tablePile.length === 0) {
+  table.textContent = "Mitten är tom";
+} else {
+  tablePile.forEach((card, i) => {
+    const c = document.createElement("div");
+    c.className = "table-card";
+    c.textContent = formatCard(card);
+
+    // liten offset så det ser staplat ut
+    c.style.top = `${i * 2}px`;
+    c.style.left = `${i * 2}px`;
+
+    table.appendChild(c);
+  });
 }
 
-  else {
-    tablePile.forEach((card, i) => {
-      const c = document.createElement("div");
-      c.className = "table-card";
-      c.textContent = formatCard(card);
-      c.style.top = `${i * 2}px`;
-      c.style.left = `${i * 2}px`;
-      table.appendChild(c);
-    });
-  }
-
-  gameArea.appendChild(table);
+gameArea.appendChild(table);
 
   // PLAYERS
   players.forEach((player, index) => {
