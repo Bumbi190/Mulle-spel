@@ -71,7 +71,11 @@ gameArea.appendChild(table);
     player.hand.forEach((card, cardIndex) => {
       const cardDiv = document.createElement("div");
      cardDiv.className = `card ${card.suit}`;
-      cardDiv.textContent = formatCard(card);
+      cardDiv.innerHTML = `
+  <span class="rank">${card.rank}</span>
+  <span class="suit">${getSuitSymbol(card.suit)}</span>
+`;
+
 
       if (index === currentPlayerIndex) {
         cardDiv.onclick = () => playCard(index, cardIndex);
