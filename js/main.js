@@ -29,6 +29,12 @@ fetch("rules.json")
     console.error("Kunde inte ladda rules.json:", err);
   });
 
+function endTurn() {
+  currentDragSuit = null;
+  nextTurn();
+}
+
+
 // ===== RENDER =====
 function renderGame() {
   gameArea.innerHTML = "";
