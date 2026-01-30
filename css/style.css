@@ -145,3 +145,19 @@ body {
   font-size: 16px;
 }
 
+.suit-picker {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.suit-picker button {
+  font-size: 22px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background: #fff;
+  cursor: pointer;
+}
+
