@@ -192,6 +192,12 @@ function dealCards(deckArr, playersArr, n) {
 }
 
 function formatCard(card) {
-  const s = { spades: "S", hearts: "H", diamonds: "D", clubs: "C" };
-  return `${card.rank}${s[card.suit]}`;
+  const suitSymbols = {
+    spades: "♠",
+    hearts: "♥",
+    diamonds: "♦",
+    clubs: "♣"
+  };
+
+  return `${card.rank}${suitSymbols[card.suit]}`;
 }
