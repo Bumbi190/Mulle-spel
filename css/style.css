@@ -56,15 +56,24 @@ body {
   box-shadow: none;
 }
 
-/* ===== MITTEN ===== */
+/* === MITTEN === */
 .table {
-  width: 80px;
-  height: 110px;
+  width: 100px;
+  height: 140px;
   border: 2px dashed #666;
-  border-radius: 8px;
+  border-radius: 10px;
   margin: 20px 0;
   position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #444;
+  font-weight: bold;
+  font-size: 14px;
 }
+
 
 .table-card {
   position: absolute;
