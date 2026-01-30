@@ -93,3 +93,14 @@ body {
 
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
+
+/* === LAYOUT === */
+#game {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* Ge mitten luft */
+.table {
+  margin: 30px auto;
+}
