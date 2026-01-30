@@ -106,14 +106,19 @@ body {
 }
 
 .card.hearts,
-.card.diamonds {
+.table-card.hearts,
+.card.diamonds,
+.table-card.diamonds {
   color: #c0392b;
 }
 
 .card.spades,
-.card.clubs {
+.table-card.spades,
+.card.clubs,
+.table-card.clubs {
   color: #2c3e50;
 }
+
 
 .card {
   flex-direction: column;
