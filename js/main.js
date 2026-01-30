@@ -160,12 +160,13 @@ function hasPlayableCard(player) {
   return player.hand.some(canPlayCard);
 }
 
-function takeTablePile(player) {
-  player.hand.push(...tablePile);
+function takeTablePile(playerIndex) {
+  players[playerIndex].hand.push(...tablePile);
   tablePile.length = 0;
   currentDragSuit = null;
   nextTurn();
 }
+
 
 function nextTurn() {
   currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
