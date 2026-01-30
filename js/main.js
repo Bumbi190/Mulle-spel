@@ -134,14 +134,15 @@ gameArea.appendChild(table);
 
     // TAKE TABLE (TA UPP MITTEN)
     if (index === currentPlayerIndex && !hasPlayableCard(player)) {
-      const btn = document.createElement("button");
-      btn.textContent = "Ta upp mitten";
-      btn.onclick = () => takeTablePile(index);
-      playerDiv.appendChild(btn);
-    }
+  const btn = document.createElement("button");
+  btn.textContent = "Ta upp mitten";
+  btn.onclick = () => takeTablePile(index);
+  playerDiv.appendChild(btn);
+}
+
 
     gameArea.appendChild(playerDiv);
-  };
+  });
 }
 
 // ===== GAME LOGIC =====
