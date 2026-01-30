@@ -147,21 +147,15 @@ function playCard(playerIndex, cardIndex) {
   players[playerIndex].hand.splice(cardIndex, 1);
   tablePile.push(card);
 
-// Lås färg vid första kortet
-if (currentDragSuit === null) {
-  currentDragSuit = card.suit;
-}
+  // 🔟 RUTER 10 – rensa mitten
+  if (card.rank === 10 && card.suit === "diamonds") {
+    tablePile.length = 0;
+    currentDragSuit = null;
+    nextTurn();
+    return;
+  }
 
- // 🔟 RUTER 10 – rensa mitten
-if (card.rank === 10 && card.suit === "diamonds") {
-  tablePile.length = 0;
-  currentDragSuit = null;
-  nextTurn();
-  return;
-}
-
-
-  // 🟥 SPADER 2
+  // 🟥 SPADER 2 – nästa tar mitten
   if (card.rank === 2 && card.suit === "spades") {
     const next =
       players[(currentPlayerIndex + 1) % players.length];
@@ -178,16 +172,22 @@ if (card.rank === 10 && card.suit === "diamonds") {
     return;
   }
 
-    // ESS = välj ny färg
-if (card.rank === "A") {
-  choosingSuit = true;
-  currentDragSuit = null;
-  renderGame();
-  return;
-}
+  // 🅰️ ESS – välj ny färg
+  if (card.rank === "A") {
+    choosingSuit = true;
+    currentDragSuit = null;
+    renderGame();
+    return;
+  }
+
+  // 🎯 VANLIGT KORT → lås färg
+  if (currentDragSuit === null) {
+    currentDragSuit = card.suit;
+  }
 
   renderGame();
 }
+
 
 function endTurn() {
   currentDragSuit = null;
