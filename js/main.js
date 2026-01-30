@@ -61,6 +61,14 @@ if (tablePile.length === 0) {
 
 gameArea.appendChild(table);
 
+  if (currentDragSuit !== null) {
+  const dragInfo = document.createElement("div");
+  dragInfo.className = "drag-indicator";
+  dragInfo.textContent = `Du lägger ${getSuitSymbol(currentDragSuit)}`;
+  gameArea.appendChild(dragInfo);
+}
+
+
   // PLAYERS
   players.forEach((player, index) => {
     const playerDiv = document.createElement("div");
