@@ -141,9 +141,11 @@ gameArea.appendChild(scoreBoard);
       mulleBtn.textContent = "MULLE";
       mulleBtn.className = "mulle-btn";
       mulleBtn.onclick = () => {
-        mulleCalled = true;
-        renderGame();
-      };
+  mulleCalled = true;
+  players[currentPlayerIndex].score += 1; // MULLE-poäng
+  renderGame();
+};
+
       playerDiv.appendChild(mulleBtn);
     }
 
@@ -175,6 +177,10 @@ function playCard(playerIndex, cardIndex) {
 
   player.hand.splice(cardIndex, 1);
   tablePile.push(card);
+
+  // Grundpoäng för kortet
+player.score += calculateCardPoints(card);
+
 
   // ===== MULLE CHECK =====
   mustCallMulle = player.hand.length === 1;
@@ -227,6 +233,11 @@ function endTurn() {
   if (mustCallMulle && !mulleCalled) {
     players[currentPlayerIndex].hand.push(...tablePile);
     tablePile.length = 0;
+  }
+
+  // TABBE (om bordet blev tomt pga tag)
+  if (tablePile.length === 0) {
+    players[currentPlayerIndex].score += 1;
   }
 
   mustCallMulle = false;
