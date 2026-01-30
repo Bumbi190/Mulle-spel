@@ -134,6 +134,12 @@ function playCard(playerIndex, cardIndex) {
     currentDragSuit = card.suit;
   }
 
+  function endTurn() {
+  currentDragSuit = null;
+  nextTurn();
+}
+
+
   // 🟥 SPADER 2 – nästa spelare tar mitten
   if (card.rank === 2 && card.suit === "spades") {
     const nextPlayer =
