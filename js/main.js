@@ -75,13 +75,31 @@ function handleCardClick(cardIndex, event) {
     return;
   }
 
+  // 🔨 SHIFT + klick → bygga
+  if (buildSelection.length === 1) {
+    const firstCard = buildSelection[0];
+    const secondCard = player.hand[cardIndex];
+
+    if (firstCard === secondCard) return;
+
+    const build = createBuild([firstCard, secondCard], game.currentPlayer);
+
+    player.hand = player.hand.filter(
+      c => c !== firstCard && c !== secondCard
+    );
+
+    game.builds.push(build);
+    buildSelection = [];
+
+    nextPlayer();
+    render();
+    return;
+  }
 
   // Första bygg-kortet
   buildSelection = [player.hand[cardIndex]];
   render();
 }
-
-
 
 
 // ================= PLAY =================
