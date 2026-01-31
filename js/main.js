@@ -1,15 +1,15 @@
-console.log("🔥 MULLE – Fängelseedition (Core v1)");
+console.log("🔥 MULLE – Fängelseedition (Core v2 clean)");
 
 // ================= GAME STATE =================
-let game = {
+const game = {
   players: [],
   deck: [],
   tableCards: [],
   builds: [],
-  currentPlayer: 0
+  currentPlayer: 0,
 };
 
-let buildSelection = []; // valda kort (0-2)
+let buildSelection = []; // valda handkort (max 2)
 
 // ================= START =================
 startGame();
@@ -38,40 +38,50 @@ function createPlayers(n) {
     name: `Spelare ${i + 1}`,
     hand: [],
     takenCards: [],
-    mulleCards: [],
-    tabbes: 0
+    mulleCards: [], // sparar Mulle-par (2 kort per mulle)
+    tabbes: 0,
   }));
 }
 
 // ================= VALUES =================
-// Bordsvärde: används för summa på bordet + byggen
+// Bordsvärde: används för summor på bordet och byggvärden
 function getCardTableValue(card) {
   if (card.rank === "A") return 1;
-  if (card.rank === 2 && card.suit === "spades") return 2;      // ♠2
-  if (card.rank === 10 && card.suit === "diamonds") return 10;  // ♦10
+
+  // Special enligt fängelse-Mulle
+  if (card.rank === 2 && card.suit === "spades") return 2;         // ♠2 = 2 på bord
+  if (card.rank === 10 && card.suit === "diamonds") return 10;     // ♦10 = 10 på bord
+
+  // Klädda kort på bordet räknas som 11/12/13 i din variant (så byggen kan bli 11 osv)
   if (card.rank === "J") return 11;
   if (card.rank === "Q") return 12;
   if (card.rank === "K") return 13;
-  return card.rank; // 2–10
+
+  // 2–10
+  return card.rank;
 }
 
-// Handvärde: används för att ta in / mulle / special
+// Handvärde: används när man tar in (och för "höga" specialkort)
 function getCardHandValue(card) {
   if (card.rank === "A") return 14;
   if (card.rank === "J") return 11;
   if (card.rank === "Q") return 12;
   if (card.rank === "K") return 13;
-  if (card.rank === 2 && card.suit === "spades") return 15;         // ♠2
-  if (card.rank === 10 && card.suit === "diamonds") return 16;      // ♦10
-  return card.rank; // 2–10
+
+  // Specialkort på handen
+  if (card.rank === 2 && card.suit === "spades") return 15;        // ♠2 = 15 på hand
+  if (card.rank === 10 && card.suit === "diamonds") return 16;     // ♦10 = 16 på hand
+
+  // 2–10
+  return card.rank;
 }
 
 // ================= BUILDS =================
 function createBuild(cards, owner) {
   return {
-    cards,
-    value: cards.reduce((s, c) => s + getCardTableValue(c), 0),
-    owner
+    cards: [...cards],
+    value: cards.reduce((sum, c) => sum + getCardTableValue(c), 0),
+    owner,
   };
 }
 
@@ -80,10 +90,11 @@ function handleCardClick(cardIndex) {
   const player = game.players[game.currentPlayer];
   const card = player.hand[cardIndex];
 
+  // Toggle select
   if (buildSelection.includes(card)) {
-    buildSelection = buildSelection.filter(c => c !== card);
+    buildSelection = buildSelection.filter((c) => c !== card);
   } else {
-    if (buildSelection.length === 2) return;
+    if (buildSelection.length >= 2) return;
     buildSelection.push(card);
   }
 
@@ -99,7 +110,9 @@ function playSelectedCard() {
     return;
   }
 
-  const cardIndex = player.hand.indexOf(buildSelection[0]);
+  const card = buildSelection[0];
+  const cardIndex = player.hand.indexOf(card);
+
   if (cardIndex === -1) {
     alert("Kortet finns inte längre i handen (bugg).");
     buildSelection = [];
@@ -118,13 +131,15 @@ function buildSelectedCards() {
     return;
   }
 
+  // Byggvärde räknas på bordsvärde (A=1, ♦10=10 etc)
   const buildValue = buildSelection.reduce(
-    (s, c) => s + getCardTableValue(c), 0
+    (sum, c) => sum + getCardTableValue(c),
+    0
   );
 
-  // Måste ha ett kvarvarande handkort som kan ta in bygget (HANDVÄRDE)
+  // Regel: du måste ha ett KVAR i handen som kan ta bygget senare (handvärde)
   const canTakeLater = player.hand.some(
-    c => !buildSelection.includes(c) && getCardHandValue(c) === buildValue
+    (c) => !buildSelection.includes(c) && getCardHandValue(c) === buildValue
   );
 
   if (!canTakeLater) {
@@ -134,7 +149,10 @@ function buildSelectedCards() {
 
   const build = createBuild(buildSelection, game.currentPlayer);
 
-  player.hand = player.hand.filter(c => !buildSelection.includes(c));
+  // Ta bort valda kort från handen
+  player.hand = player.hand.filter((c) => !buildSelection.includes(c));
+
+  // Lägg bygget på bordet
   game.builds.push(build);
 
   buildSelection = [];
@@ -142,34 +160,37 @@ function buildSelectedCards() {
   render();
 }
 
-// ================= PLAY =================
+// ================= PLAY LOGIC =================
 function playCard(cardIndex) {
   const player = game.players[game.currentPlayer];
   const card = player.hand.splice(cardIndex, 1)[0];
 
+  // Rensa selection så UI inte hänger kvar
   buildSelection = [];
 
-  // MULLE (lika med lika)
+  // 1) MULLE: exakt samma rank + suit tar endast de två korten
   const matchIndex = game.tableCards.findIndex(
-    c => c.rank === card.rank && c.suit === card.suit
+    (c) => c.rank === card.rank && c.suit === card.suit
   );
 
   if (matchIndex !== -1) {
     const match = game.tableCards.splice(matchIndex, 1)[0];
     player.mulleCards.push(card, match);
+
     nextPlayer();
     render();
     return;
   }
 
-  // SUMTAGNING
-  const value = getCardHandValue(card);
-  const taken = findSumCombination(value);
+  // 2) SUMTAGNING: handvärde (A=14, ♠2=15, ♦10=16) tar kombination på bordet
+  const target = getCardHandValue(card);
+  const taken = findSumCombination(target);
 
   if (taken.length) {
     player.takenCards.push(card, ...taken);
-    game.tableCards = game.tableCards.filter(c => !taken.includes(c));
+    game.tableCards = game.tableCards.filter((c) => !taken.includes(c));
 
+    // Tabbe om bord + byggen blev tomma
     if (game.tableCards.length === 0 && game.builds.length === 0) {
       player.tabbes++;
     }
@@ -179,7 +200,7 @@ function playCard(cardIndex) {
     return;
   }
 
-  // Lägg ut
+  // 3) Annars: lägg ut på bordet
   game.tableCards.push(card);
   nextPlayer();
   render();
@@ -191,14 +212,15 @@ function tryTakeBuild(buildIndex) {
   const build = game.builds[buildIndex];
   if (!build) return;
 
+  // v2: fortfarande bara ta eget bygge
   if (build.owner !== game.currentPlayer) {
-    alert("Du får bara ta ditt eget bygge");
+    alert("Du får bara ta ditt eget bygge (v2)");
     return;
   }
 
-  // Bygge-värdet är bordsvärde-summa, tas in med HANDVÄRDE
+  // Byggvärdet är bord-summan, tas in med handvärde
   const handIndex = player.hand.findIndex(
-    c => getCardHandValue(c) === build.value
+    (c) => getCardHandValue(c) === build.value
   );
 
   if (handIndex === -1) {
@@ -211,7 +233,7 @@ function tryTakeBuild(buildIndex) {
 
   game.builds.splice(buildIndex, 1);
 
-  // Tabbe om både bord + byggen är tomt
+  // Tabbe om bord + byggen blev tomma
   if (game.tableCards.length === 0 && game.builds.length === 0) {
     player.tabbes++;
   }
@@ -221,8 +243,7 @@ function tryTakeBuild(buildIndex) {
   render();
 }
 
-
-// ================= SUM =================
+// ================= SUM SEARCH =================
 function findSumCombination(target) {
   let result = [];
 
@@ -234,8 +255,8 @@ function findSumCombination(target) {
     if (sum > target) return false;
 
     for (let i = start; i < game.tableCards.length; i++) {
-      if (dfs(i + 1, sum + getCardTableValue(game.tableCards[i]), [...path, game.tableCards[i]]))
-        return true;
+      const next = game.tableCards[i];
+      if (dfs(i + 1, sum + getCardTableValue(next), [...path, next])) return true;
     }
     return false;
   }
@@ -254,13 +275,19 @@ function render() {
   const status = document.getElementById("status");
   const area = document.getElementById("game");
 
+  if (!status || !area) {
+    console.warn("Saknar #status eller #game i HTML");
+    return;
+  }
+
   status.textContent = `Tur: ${game.players[game.currentPlayer].name}`;
   area.innerHTML = "";
 
+  // ===== TABLE =====
   const table = document.createElement("div");
   table.className = "table";
 
-  game.tableCards.forEach(c => table.appendChild(renderCard(c)));
+  game.tableCards.forEach((c) => table.appendChild(renderCard(c)));
 
   game.builds.forEach((b, index) => {
     const div = document.createElement("div");
@@ -276,8 +303,10 @@ function render() {
     if (b.owner === game.currentPlayer) {
       div.classList.add("own-build");
       div.onclick = () => tryTakeBuild(index);
+      div.title = "Klicka för att ta in bygget";
     } else {
       div.classList.add("other-build");
+      div.title = "Motståndares bygge (låst i v2)";
     }
 
     table.appendChild(div);
@@ -285,6 +314,7 @@ function render() {
 
   area.appendChild(table);
 
+  // ===== PLAYERS =====
   game.players.forEach((p, i) => {
     const div = document.createElement("div");
     div.className = "player";
@@ -292,7 +322,7 @@ function render() {
     div.innerHTML = `
       <h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>
       <div style="font-size:12px; opacity:0.8;">
-        Tagna: ${p.takenCards.length} • Mullar: ${p.mulleCards.length / 2} • Tabbar: ${p.tabbes}
+        Tagna: ${p.takenCards.length} kort • Mullar: ${p.mulleCards.length / 2} • Tabbar: ${p.tabbes}
       </div>
     `;
 
@@ -316,6 +346,7 @@ function render() {
 
     div.appendChild(hand);
 
+    // actions bara för current player
     if (i === game.currentPlayer) {
       const actions = document.createElement("div");
       actions.className = "actions";
@@ -347,17 +378,21 @@ function renderCard(card) {
 
 function createDeck(decks) {
   const suits = ["hearts", "diamonds", "clubs", "spades"];
-  const ranks = [2,3,4,5,6,7,8,9,10,"J","Q","K","A"];
+  const ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"];
   const out = [];
-  for (let d = 0; d < decks; d++)
-    for (const s of suits)
+
+  for (let d = 0; d < decks; d++) {
+    for (const s of suits) {
       for (const r of ranks) out.push({ suit: s, rank: r });
+    }
+  }
   return out;
 }
 
 function deal(deck, players, n) {
-  for (let i = 0; i < n; i++)
-    players.forEach(p => p.hand.push(deck.pop()));
+  for (let i = 0; i < n; i++) {
+    players.forEach((p) => p.hand.push(deck.pop()));
+  }
 }
 
 function shuffle(arr) {
@@ -368,6 +403,5 @@ function shuffle(arr) {
 }
 
 function getSuitSymbol(s) {
-  return { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" }[s];
+  return { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" }[s];
 }
-
