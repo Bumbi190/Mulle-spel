@@ -88,6 +88,7 @@ function handleCardClick(cardIndex) {
   }
 
   render();
+}
 
 // ================= ACTIONS =================
 function playSelectedCard() {
@@ -212,7 +213,7 @@ function tryTakeBuild(buildIndex) {
 
   if (game.tableCards.length === 0 && game.builds.length === 0) {
     player.tabbes++;
-  }
+
 
   buildSelection = [];
   nextPlayer();
