@@ -370,6 +370,9 @@ function render() {
       const scoreBtn = document.createElement("button");
 scoreBtn.textContent = "Räkna poäng";
 scoreBtn.onclick = () => {
+  console.log(
+  game.players.map(p => `${p.name}: ${p.score}p`)
+);
   game.players.forEach(p => {
     p.score = calculatePlayerScore(p);
   });
@@ -463,10 +466,11 @@ function calculatePlayerScore(player) {
     score += getCardScore(card);
   });
 
-  // Mullar
-  player.mulleCards.forEach(card => {
-    score += getMulleScore(card);
-  });
+  // Mullar (2 kort per mulle)
+for (let i = 0; i < player.mulleCards.length; i += 2) {
+  const card = player.mulleCards[i];
+  score += getMulleScore(card);
+}
 
   // Tabbar
   score += player.tabbes;
