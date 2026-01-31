@@ -6,11 +6,10 @@ let game = {
   deck: [],
   tableCards: [],
   builds: [],
-  currentPlayer: 0,
-  phase: "PLAY"
+  currentPlayer: 0
 };
-let buildSelection = []; // tillfälligt val av kort för bygge
 
+let buildSelection = [];
 
 // ================= START =================
 startGame();
@@ -34,15 +33,13 @@ function createPlayers(n) {
   return Array.from({ length: n }, (_, i) => ({
     name: `Spelare ${i + 1}`,
     hand: [],
-    score: 0,          // behåll för nu
-    takenCards: [],    // vanliga stick
-    mulleCards: [],    // mullar (2 kort per mulle)
-    tabbes: 0          // antal tabbar
+    takenCards: [],
+    mulleCards: [],
+    tabbes: 0
   }));
 }
 
-
-// ================= CORE RULES =================
+// ================= VALUES =================
 function getCardTableValue(card) {
   if (card.rank === "A") return 1;
   if (card.rank === 2 && card.suit === "spades") return 2;
@@ -58,56 +55,64 @@ function getCardHandValue(card) {
 }
 
 // ================= BUILDS =================
-function createBuild(cards, ownerIndex) {
+function createBuild(cards, owner) {
   return {
-    cards,                         // korten som ingår i bygget
-    value: cards.reduce((sum, c) => sum + getCardTableValue(c), 0),
-    owner: ownerIndex              // vem som byggt
+    cards,
+    value: cards.reduce((s, c) => s + getCardTableValue(c), 0),
+    owner
   };
 }
 
-function handleCardClick(cardIndex, event) {
+// ================= CARD SELECTION =================
+function handleCardClick(cardIndex) {
   const player = game.players[game.currentPlayer];
+  const card = player.hand[cardIndex];
 
-  // 🔹 Vanligt klick → spela kort
-  if (!event.shiftKey) {
-    playCard(cardIndex);
-    return;
+  if (buildSelection.includes(card)) {
+    buildSelection = buildSelection.filter(c => c !== card);
+  } else {
+    buildSelection.push(card);
   }
 
-  // 🔨 SHIFT + klick → bygga
-  if (buildSelection.length === 1) {
-    const firstCard = buildSelection[0];
-    const secondCard = player.hand[cardIndex];
-
-    if (firstCard === secondCard) return;
-
-    const build = createBuild([firstCard, secondCard], game.currentPlayer);
-
-    player.hand = player.hand.filter(
-      c => c !== firstCard && c !== secondCard
-    );
-
-    game.builds.push(build);
-    buildSelection = [];
-
-    nextPlayer();
-    render();
-    return;
-  }
-
-  // Första bygg-kortet
-  buildSelection = [player.hand[cardIndex]];
   render();
 }
 
+// ================= ACTIONS =================
+function playSelectedCard() {
+  const player = game.players[game.currentPlayer];
+
+  if (buildSelection.length !== 1) {
+    alert("Välj exakt ett kort att spela");
+    return;
+  }
+
+  const cardIndex = player.hand.indexOf(buildSelection[0]);
+  buildSelection = [];
+  playCard(cardIndex);
+}
+
+function buildSelectedCards() {
+  const player = game.players[game.currentPlayer];
+
+  if (buildSelection.length !== 2) {
+    alert("Välj exakt två kort för att bygga");
+    return;
+  }
+
+  const build = createBuild(buildSelection, game.currentPlayer);
+  player.hand = player.hand.filter(c => !buildSelection.includes(c));
+  game.builds.push(build);
+  buildSelection = [];
+
+  nextPlayer();
+  render();
+}
 
 // ================= PLAY =================
 function playCard(cardIndex) {
   const player = game.players[game.currentPlayer];
   const card = player.hand.splice(cardIndex, 1)[0];
 
-  // MULLE – lika kort
   const matchIndex = game.tableCards.findIndex(
     c => c.rank === card.rank && c.suit === card.suit
   );
@@ -116,53 +121,45 @@ function playCard(cardIndex) {
     const match = game.tableCards.splice(matchIndex, 1)[0];
     player.mulleCards.push(card, match);
     nextPlayer();
-    render();
-    return;
+    return render();
   }
 
-  // VANLIG TAGNING (summa)
-  const cardValue = getCardHandValue(card);
-  const taken = findSumCombination(cardValue);
+  const value = getCardHandValue(card);
+  const taken = findSumCombination(value);
 
-  if (taken.length > 0) {
+  if (taken.length) {
     player.takenCards.push(card, ...taken);
     game.tableCards = game.tableCards.filter(c => !taken.includes(c));
-
-    if (game.tableCards.length === 0) player.tabbes++;
+    if (!game.tableCards.length) player.tabbes++;
     nextPlayer();
-    render();
-    return;
+    return render();
   }
 
-  // ANNARS LÄGG UT
   game.tableCards.push(card);
   nextPlayer();
   render();
 }
 
-
-// ================= SUM LOGIC =================
+// ================= SUM =================
 function findSumCombination(target) {
-  const results = [];
+  let result = [];
 
   function dfs(start, sum, path) {
-    if (sum === target && path.length > 0) {
-      results.push([...path]);
-      return;
+    if (sum === target && path.length) {
+      result = path;
+      return true;
     }
-    if (sum > target) return;
+    if (sum > target) return false;
 
     for (let i = start; i < game.tableCards.length; i++) {
-      dfs(
-        i + 1,
-        sum + getCardTableValue(game.tableCards[i]),
-        [...path, game.tableCards[i]]
-      );
+      if (dfs(i + 1, sum + getCardTableValue(game.tableCards[i]), [...path, game.tableCards[i]]))
+        return true;
     }
+    return false;
   }
 
   dfs(0, 0, []);
-  return results[0] || [];
+  return result;
 }
 
 // ================= TURN =================
@@ -178,30 +175,24 @@ function render() {
   status.textContent = `Tur: ${game.players[game.currentPlayer].name}`;
   area.innerHTML = "";
 
-  // TABLE
   const table = document.createElement("div");
   table.className = "table";
+
   game.tableCards.forEach(c => table.appendChild(renderCard(c)));
-  
-  // Visa byggen
-game.builds.forEach(build => {
-  const buildDiv = document.createElement("div");
-  buildDiv.className = "build";
-  buildDiv.textContent = `Bygge ${build.value}`;
-  table.appendChild(buildDiv);
-});
+
+  game.builds.forEach(b => {
+    const div = document.createElement("div");
+    div.className = "build";
+    div.textContent = `Bygge ${b.value}`;
+    table.appendChild(div);
+  });
 
   area.appendChild(table);
 
-  // PLAYERS
   game.players.forEach((p, i) => {
     const div = document.createElement("div");
     div.className = "player";
-    div.innerHTML = `
-      <h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>
-      <div>Mullar: ${p.mulleCards.length / 2}</div>
-      <div>Tabbar: ${p.tabbes}</div>
-    `;
+    div.innerHTML = `<h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>`;
 
     const hand = document.createElement("div");
     hand.className = "hand";
@@ -209,13 +200,33 @@ game.builds.forEach(build => {
     p.hand.forEach((c, idx) => {
       const cardDiv = renderCard(c);
       if (i === game.currentPlayer) {
-        cardDiv.onclick = (e) => handleCardClick(idx, e);
-        cardDiv.classList.add("playable");
-      } else cardDiv.classList.add("disabled");
+        cardDiv.onclick = () => handleCardClick(idx);
+        if (buildSelection.includes(c)) cardDiv.classList.add("selected");
+      } else {
+        cardDiv.classList.add("disabled");
+      }
       hand.appendChild(cardDiv);
     });
 
     div.appendChild(hand);
+
+    if (i === game.currentPlayer) {
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const playBtn = document.createElement("button");
+      playBtn.textContent = "Spela kort";
+      playBtn.onclick = playSelectedCard;
+
+      const buildBtn = document.createElement("button");
+      buildBtn.textContent = "Bygg";
+      buildBtn.onclick = buildSelectedCards;
+
+      actions.appendChild(playBtn);
+      actions.appendChild(buildBtn);
+      div.appendChild(actions);
+    }
+
     area.appendChild(div);
   });
 }
@@ -224,7 +235,7 @@ game.builds.forEach(build => {
 function renderCard(card) {
   const d = document.createElement("div");
   d.className = `card ${card.suit}`;
-  d.innerHTML = `<span>${card.rank}${getSuitSymbol(card.suit)}</span>`;
+  d.innerHTML = `${card.rank}${getSuitSymbol(card.suit)}`;
   return d;
 }
 
