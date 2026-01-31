@@ -44,36 +44,26 @@ function createPlayers(n) {
 }
 
 // ================= VALUES =================
+// ===== BORDSVÄRDE (byggen, summor på bordet) =====
 function getCardTableValue(card) {
   if (card.rank === "A") return 1;
-  if (card.rank === 2 && card.suit === "spades") return 2;
-  if (card.rank === 10 && card.suit === "diamonds") return 10;
-
-  if (card.rank === "J") return 11;
-  if (card.rank === "Q") return 12;
-  if (card.rank === "K") return 13;
-
-  return typeof card.rank === "number" ? card.rank : 10;
+  if (card.rank === "J" || card.rank === "Q" || card.rank === "K") return 10;
+  if (card.rank === 2 && card.suit === "spades") return 2;          // ♠2
+  if (card.rank === 10 && card.suit === "diamonds") return 10;      // ♦10
+  return card.rank; // 2–10
 }
 
-
+// ===== HANDVÄRDE (ta in / mulle / “höga” kort) =====
 function getCardHandValue(card) {
-  // Specialkort i fängelse-Mulle
   if (card.rank === "A") return 14;
-  if (card.rank === 2 && card.suit === "spades") return 15;      // spader 2
-  if (card.rank === 10 && card.suit === "diamonds") return 16;   // ruter 10
-
-  // Klädda kort på HANDEN
   if (card.rank === "J") return 11;
   if (card.rank === "Q") return 12;
   if (card.rank === "K") return 13;
-
-  // Siffror
-  if (typeof card.rank === "number") return card.rank;
-
-  // fallback (borde aldrig hända)
-  return 10;
+  if (card.rank === 2 && card.suit === "spades") return 15;         // ♠2
+  if (card.rank === 10 && card.suit === "diamonds") return 16;      // ♦10
+  return card.rank; // 2–10
 }
+
 
 
 function playerHasBuildValue(player, value, usedCards) {
@@ -133,11 +123,35 @@ function playSelectedCard() {
 function buildSelectedCards() {
   const player = game.players[game.currentPlayer];
 
-  // 1) måste välja exakt två kort
   if (buildSelection.length !== 2) {
     alert("Välj exakt två kort för att bygga");
     return;
   }
+
+  // byggvärde räknas med BORDSVÄRDE
+  const buildValue = buildSelection.reduce(
+    (s, c) => s + getCardTableValue(c), 0
+  );
+
+  // REGEL: du måste ha ett HANDKORT kvar som kan ta bygget
+  const canTakeLater = player.hand.some(
+    c => !buildSelection.includes(c) && getCardHandValue(c) === buildValue
+  );
+
+  if (!canTakeLater) {
+    alert(`Ogiltigt bygge: du har inget ${buildValue}-kort kvar på handen`);
+    return;
+  }
+
+  // skapa och lägg bygge
+  const build = createBuild(buildSelection, game.currentPlayer);
+  player.hand = player.hand.filter(c => !buildSelection.includes(c));
+  game.builds.push(build);
+
+  buildSelection = [];
+  nextPlayer();
+  render();
+}
 
   // 2) räkna byggvärdet (BORDSVÄRDE)
   function buildSelectedCards() {
