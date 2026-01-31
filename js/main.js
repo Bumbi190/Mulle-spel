@@ -88,7 +88,6 @@ function handleCardClick(cardIndex) {
   }
 
   render();
-}
 
 // ================= ACTIONS =================
 function playSelectedCard() {
