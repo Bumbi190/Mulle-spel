@@ -94,6 +94,7 @@ function playSelectedCard() {
 }
 
 function buildSelectedCards() {
+  console.log("Bygg klickad, valda kort:", buildSelection);
   const player = game.players[game.currentPlayer];
 
   if (buildSelection.length !== 2) {
