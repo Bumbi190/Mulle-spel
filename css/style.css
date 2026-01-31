@@ -1,200 +1,356 @@
 /* ===== BAS ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  background: pink;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  min-height: 100vh;
 }
 
-/* ===== SPELARE ===== */
-.player {
-  margin-bottom: 24px;
+h1 {
+  text-align: center;
+  color: white;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-.hand {
+#status {
+  text-align: center;
+  color: white;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+#game {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== INSTRUKTIONER ===== */
+.instructions {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.instructions strong {
+  color: #667eea;
+}
+
+/* ===== BORDET ===== */
+.table {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+.table h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.table-cards {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin: 10px 0;
+  min-height: 100px;
+  padding: 10px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+  border: 2px dashed #667eea;
+}
+
+/* ===== BYGGEN ===== */
+.builds-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.build {
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.build:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.build-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.build-owner {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.build-cards {
+  font-size: 11px;
+  color: #888;
+}
+
+.build.own-build {
+  border: 3px solid #28a745;
+  background: #d4edda;
+}
+
+.build.other-build {
+  border: 2px dashed #999;
+  background: #f5f5f5;
+  opacity: 0.7;
+}
+
+.build.selected {
+  border-color: #ffc107;
+  background: #fff3cd;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
 }
 
 /* ===== KORT ===== */
 .card {
-  width: 60px;
-  height: 90px;
-  background: #fff;
-  border: 2px solid #333;
-  border-radius: 8px;
+  width: 70px;
+  height: 100px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border: 3px solid #2c3e50;
+  border-radius: 10px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  gap: 4px;
   font-weight: bold;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  position: relative;
 }
 
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+.card:hover:not(.disabled) {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.card .rank {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.card .suit {
+  font-size: 28px;
+  line-height: 1;
+}
+
+/* Färger */
+.card.hearts,
+.card.diamonds {
+  color: #e74c3c;
+}
+
+.card.spades,
+.card.clubs {
+  color: #2c3e50;
+}
+
+/* Valda kort */
+.card.selected {
+  border-color: #ffc107;
+  box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.5), 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-5px);
+}
+
+.card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #ffc107;
+  color: white;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  font-weight: bold;
 }
 
 /* Spelbara kort */
 .card.playable {
-  border-color: #2ecc71;
-  box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.4);
+  border-color: #28a745;
+}
+
+.card.playable:hover {
+  border-color: #20c997;
 }
 
 /* Inaktiva kort */
 .card.disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
   filter: grayscale(100%);
 }
 
 .card.disabled:hover {
   transform: none;
-  box-shadow: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-/* === MITTEN === */
-.table {
-  width: 100px;
-  height: 140px;
-  border: 2px dashed #666;
-  border-radius: 10px;
-  margin: 20px 0;
-  position: relative;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #444;
-  font-weight: bold;
-  font-size: 14px;
+/* ===== SPELARE ===== */
+.player {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
 }
 
-
-/* Kort i mitten */
-.table-card {
-  position: absolute;
-  width: 60px;
-  height: 90px;
-  background: white;
-  border: 2px solid #333;
-  border-radius: 8px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 20px;
-  font-weight: bold;
-
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+.player.active-player {
+  background: #d4edda;
+  border: 3px solid #28a745;
+  transform: scale(1.02);
 }
 
-/* === LAYOUT === */
-#game {
-  max-width: 420px;
-  margin: 0 auto;
-}
-
-/* Ge mitten luft */
-.table {
-  margin: 30px auto;
-}
-
-.card.hearts,
-.table-card.hearts,
-.card.diamonds,
-.table-card.diamonds {
-  color: #c0392b;
-}
-
-.card.spades,
-.table-card.spades,
-.card.clubs,
-.table-card.clubs {
+.player h3 {
   color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 1.3em;
 }
 
-
-.card {
-  flex-direction: column;
-  gap: 2px;
+.player-stats {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 6px;
 }
 
-.card .rank {
-  font-size: 18px;
-}
-
-.card .suit {
-  font-size: 22px;
-  line-height: 1;
-}
-
-.drag-indicator {
-  text-align: center;
-  font-weight: bold;
-  margin: 10px 0 20px;
-  padding: 6px 10px;
-  background: #fff;
-  border-radius: 8px;
-  border: 2px solid #333;
-  font-size: 16px;
-}
-
-.suit-picker {
+.hand {
   display: flex;
-  justify-content: center;
   gap: 10px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+  min-height: 110px;
 }
 
-.suit-picker button {
-  font-size: 22px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 2px solid #333;
-  background: #fff;
-  cursor: pointer;
-}
-
-
-.card.selected::after {
-  content: "✓";
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: #00c853;
-  color: white;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 14px;
+/* ===== KNAPPAR ===== */
+.actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 15px;
 }
-.build {
-  padding: 6px 10px;
+
+button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 16px;
   border-radius: 8px;
-  margin-left: 6px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 12px;
-  line-height: 1.2;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
 }
 
-.build.own-build {
-  border: 2px solid #2ecc71;
-  background: #e8f5e9;
+button:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.3);
 }
 
-.build.other-build {
-  border: 2px dashed #999;
-  background: #f0f0f0;
-  opacity: 0.6;
-  cursor: not-allowed;
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+button.clear-btn {
+  background: #dc3545;
+}
+
+button.clear-btn:hover {
+  background: #c82333;
+}
+
+/* ===== RESPONSIV ===== */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  .card {
+    width: 60px;
+    height: 85px;
+  }
+
+  .card .rank {
+    font-size: 18px;
+  }
+
+  .card .suit {
+    font-size: 24px;
+  }
+
+  .instructions {
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* ===== ANIMATIONER ===== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.player, .table {
+  animation: slideIn 0.3s ease;
+}
