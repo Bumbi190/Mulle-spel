@@ -205,6 +205,8 @@ function render() {
       if (i === game.currentPlayer) {
         cardDiv.onclick = () => handleCardClick(idx);
         if (buildSelection.includes(c)) cardDiv.classList.add("selected");
+        
+        
       } else {
         cardDiv.classList.add("disabled");
       }
