@@ -115,6 +115,19 @@ function playSelectedCard() {
 
 function buildSelectedCards() {
   const player = game.players[game.currentPlayer];
+  const buildValue = buildSelection.reduce(
+  (s, c) => s + getCardTableValue(c), 0
+);
+
+const hasMatchingCard = player.hand.some(
+  c => getCardHandValue(c) === buildValue
+);
+
+if (!hasMatchingCard) {
+  alert(`Ogiltigt bygge: du har inget ${buildValue}-kort kvar på handen`);
+  return;
+}
+
 
   if (buildSelection.length !== 2) {
     alert("Välj exakt två kort för att bygga");
@@ -211,8 +224,8 @@ function tryTakeBuild(buildIndex) {
 
   // Matcha på BORDSVÄRDE (så ess = 1, ruter 10 = 10 etc)
   const handIndex = player.hand.findIndex(
-    c => getCardHandValue(c) === build.value
-  );
+  c => getCardHandValue(c) === build.value
+);
 
   if (handIndex === -1) {
     alert(`Du måste ha ${build.value} på handen för att ta detta bygge`);
