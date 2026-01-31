@@ -161,7 +161,20 @@ body {
   cursor: pointer;
 }
 
-.selected {
-  outline: 3px solid #00c853;
-  background: #e8f5e9;
+
+.card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #00c853;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
