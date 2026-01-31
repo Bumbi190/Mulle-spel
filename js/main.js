@@ -9,6 +9,8 @@ let game = {
   currentPlayer: 0,
   phase: "PLAY"
 };
+let buildSelection = []; // tillfälligt val av kort för bygge
+
 
 // ================= START =================
 startGame();
@@ -55,6 +57,16 @@ function getCardHandValue(card) {
   return typeof card.rank === "number" ? card.rank : 10;
 }
 
+// ================= BUILDS =================
+function createBuild(cards, ownerIndex) {
+  return {
+    cards,                         // korten som ingår i bygget
+    value: cards.reduce((sum, c) => sum + getCardTableValue(c), 0),
+    owner: ownerIndex              // vem som byggt
+  };
+}
+
+
 // ================= PLAY =================
 function playCard(cardIndex) {
   const player = game.players[game.currentPlayer];
@@ -71,6 +83,39 @@ function playCard(cardIndex) {
     nextPlayer();
     return render();
   }
+
+  function handleCardClick(cardIndex) {
+  const player = game.players[game.currentPlayer];
+
+  // Om vi håller på att välja bygge
+  if (buildSelection.length === 1) {
+    const firstCard = buildSelection[0];
+    const secondCard = player.hand[cardIndex];
+
+    // Samma kort får inte väljas två gånger
+    if (firstCard === secondCard) return;
+
+    // Skapa bygge med exakt två kort
+    const build = createBuild([firstCard, secondCard], game.currentPlayer);
+
+    // Ta bort korten från handen
+    player.hand = player.hand.filter(
+      c => c !== firstCard && c !== secondCard
+    );
+
+    game.builds.push(build);
+    buildSelection = [];
+
+    nextPlayer();
+    render();
+    return;
+  }
+
+  // Annars: börja bygga med första kortet
+  buildSelection = [player.hand[cardIndex]];
+  render();
+}
+
 
   // VANLIG TAGNING (summa)
   const cardValue = getCardHandValue(card);
@@ -132,6 +177,15 @@ function render() {
   const table = document.createElement("div");
   table.className = "table";
   game.tableCards.forEach(c => table.appendChild(renderCard(c)));
+  
+  // Visa byggen
+game.builds.forEach(build => {
+  const buildDiv = document.createElement("div");
+  buildDiv.className = "build";
+  buildDiv.textContent = `Bygge ${build.value}`;
+  table.appendChild(buildDiv);
+});
+
   area.appendChild(table);
 
   // PLAYERS
@@ -150,7 +204,7 @@ function render() {
     p.hand.forEach((c, idx) => {
       const cardDiv = renderCard(c);
       if (i === game.currentPlayer) {
-        cardDiv.onclick = () => playCard(idx);
+        cardDiv.onclick = () => handleCardClick(idx);
         cardDiv.classList.add("playable");
       } else cardDiv.classList.add("disabled");
       hand.appendChild(cardDiv);
