@@ -91,7 +91,6 @@ function playSelectedCard() {
   }
 
   const cardIndex = player.hand.indexOf(buildSelection[0]);
-  buildSelection = [];
   playCard(cardIndex);
 }
 
@@ -121,6 +120,8 @@ function playCard(cardIndex) {
   const matchIndex = game.tableCards.findIndex(
     c => c.rank === card.rank && c.suit === card.suit
   );
+
+  buildSelection = [];
 
   if (matchIndex !== -1) {
     const match = game.tableCards.splice(matchIndex, 1)[0];
@@ -158,8 +159,9 @@ function tryTakeBuild(buildIndex) {
 
   // Hitta kort på handen som matchar byggvärdet
   const handIndex = player.hand.findIndex(
-    c => getCardHandValue(c) === build.value
-  );
+  c => getCardTableValue(c) === build.value
+);
+
 
   if (handIndex === -1) {
   alert(`Du måste ha ${build.value} på handen för att ta detta bygge`);
@@ -181,10 +183,10 @@ function tryTakeBuild(buildIndex) {
   }
 
   // Rensa val
-  buildSelection = [];
-
   nextPlayer();
-  render();
+buildSelection = [];
+render();
+
 }
 
 // ================= SUM =================
