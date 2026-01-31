@@ -32,11 +32,13 @@ function createPlayers(n) {
   return Array.from({ length: n }, (_, i) => ({
     name: `Spelare ${i + 1}`,
     hand: [],
-    capturePile: [],
-    mullePile: [],
-    tabbes: 0
+    score: 0,          // behåll för nu
+    takenCards: [],    // vanliga stick
+    mulleCards: [],    // mullar (2 kort per mulle)
+    tabbes: 0          // antal tabbar
   }));
 }
+
 
 // ================= CORE RULES =================
 function getCardTableValue(card) {
@@ -64,7 +66,7 @@ function playCard(cardIndex) {
   );
 
   if (match) {
-    player.mullePile.push(card, match);
+    player.mulleCards.push(card, match);
     game.tableCards = game.tableCards.filter(c => c !== match);
     nextPlayer();
     return render();
@@ -75,7 +77,7 @@ function playCard(cardIndex) {
   const taken = findSumCombination(cardValue);
 
   if (taken.length > 0) {
-    player.capturePile.push(card, ...taken);
+    player.takenCards.push(card, ...taken);
     game.tableCards = game.tableCards.filter(c => !taken.includes(c));
 
     if (game.tableCards.length === 0) player.tabbes++;
@@ -138,7 +140,7 @@ function render() {
     div.className = "player";
     div.innerHTML = `
       <h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>
-      <div>Mullar: ${p.mullePile.length / 2}</div>
+      <div>Mullar: ${p.mulleCards.length / 2}</div>
       <div>Tabbar: ${p.tabbes}</div>
     `;
 
