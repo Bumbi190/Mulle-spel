@@ -66,7 +66,7 @@ function createBuild(cards, ownerIndex) {
   };
 }
 
-ffunction handleCardClick(cardIndex, event) {
+function handleCardClick(cardIndex, event) {
   const player = game.players[game.currentPlayer];
 
   // 🔹 Vanligt klick → spela kort
