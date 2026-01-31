@@ -172,41 +172,49 @@ function playCard(cardIndex) {
   // Rensa selection så UI inte hänger kvar
   buildSelection = [];
 
-  // 1) MULLE: exakt samma rank + suit tar endast de två korten
+  // 1) MULLE – lika kort, men ALDRIG ess
+if (canMulle(card)) {
   const matchIndex = game.tableCards.findIndex(
-    (c) => c.rank === card.rank && c.suit === card.suit
+    c => c.rank === card.rank && c.suit === card.suit
   );
 
   if (matchIndex !== -1) {
     const match = game.tableCards.splice(matchIndex, 1)[0];
     player.mulleCards.push(card, match);
     game.lastTaker = game.currentPlayer;
-    updateScores();
 
+    updateScores();
     nextPlayer();
     checkNewDealOrEnd();
     render();
     return;
   }
+}
 
   // 2) SUMTAGNING: handvärde (A=14, ♠2=15, ♦10=16) tar kombination på bordet
+  const target = getCardHandValue(card);
+  // Ess får INTE tas via summa – måste byggas
+if (card.rank !== "A") {
   const target = getCardHandValue(card);
   const taken = findSumCombination(target);
 
   if (taken.length) {
-  player.takenCards.push(card, ...taken);
-  game.lastTaker = game.currentPlayer;
-  game.tableCards = game.tableCards.filter((c) => !taken.includes(c));
+    player.takenCards.push(card, ...taken);
+    game.lastTaker = game.currentPlayer;
+    game.tableCards = game.tableCards.filter(c => !taken.includes(c));
 
-  if (game.tableCards.length === 0 && game.builds.length === 0) {
-    player.tabbes++;
+    if (game.tableCards.length === 0 && game.builds.length === 0) {
+      player.tabbes++;
+    }
+
+    updateScores();
+    nextPlayer();
+    checkNewDealOrEnd();
+    render();
+    return;
   }
-
-  updateScores();   // 👈 NY
-  nextPlayer();
-  render();
-  return;
 }
+
 
 
   // 3) Annars: lägg ut på bordet
@@ -422,6 +430,14 @@ function getSuitSymbol(s) {
   return { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" }[s];
 }
 
+function canMulle(card) {
+  // Ess får ALDRIG mulle-tas direkt
+  if (card.rank === "A") return false;
+
+  return true;
+}
+
+
 // ================= POÄNGRÄKNING =================
 
 // Poäng för ett enskilt kort
@@ -482,19 +498,19 @@ function updateScores() {
 
 function checkNewDealOrEnd() {
   const allHandsEmpty = game.players.every(p => p.hand.length === 0);
-
   if (!allHandsEmpty) return;
 
-  // 🔁 NY GIV
-  if (game.deck.length >= game.players.length * 4) {
-    deal(game.deck, game.players, 4);
+  // 🔁 NY GIV – 8 kort
+  if (game.deck.length >= game.players.length * 8) {
+    deal(game.deck, game.players, 8);
     render();
     return;
   }
 
-  // 🚤 BÅT (leken slut)
+  // 🚤 BÅT
   handleBoat();
 }
+
 
 function handleBoat() {
   if (game.lastTaker === null) return;
