@@ -198,8 +198,6 @@ function buildSelectedCards() {
   render();
 }
 
-  }
-
   // 4) skapa bygge + ta bort valda kort
   const build = createBuild(buildSelection, game.currentPlayer);
   player.hand = player.hand.filter(c => !buildSelection.includes(c));
