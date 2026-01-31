@@ -66,8 +66,42 @@ function createBuild(cards, ownerIndex) {
   };
 }
 
-function handleCardClick(cardIndex) {
+ffunction handleCardClick(cardIndex, event) {
   const player = game.players[game.currentPlayer];
+
+  // 🔹 Vanligt klick → spela kort
+  if (!event.shiftKey) {
+    playCard(cardIndex);
+    return;
+  }
+
+  // 🔨 SHIFT + klick → bygga
+  if (buildSelection.length === 1) {
+    const firstCard = buildSelection[0];
+    const secondCard = player.hand[cardIndex];
+
+    if (firstCard === secondCard) return;
+
+    const build = createBuild([firstCard, secondCard], game.currentPlayer);
+
+    player.hand = player.hand.filter(
+      c => c !== firstCard && c !== secondCard
+    );
+
+    game.builds.push(build);
+    buildSelection = [];
+
+    nextPlayer();
+    render();
+    return;
+  }
+
+  // Första bygg-kortet
+  buildSelection = [player.hand[cardIndex]];
+  render();
+}
+
+
 
   // Andra klicket → skapa bygge
   if (buildSelection.length === 1) {
@@ -203,7 +237,7 @@ game.builds.forEach(build => {
     p.hand.forEach((c, idx) => {
       const cardDiv = renderCard(c);
       if (i === game.currentPlayer) {
-        cardDiv.onclick = () => handleCardClick(idx);
+        cardDiv.onclick = (e) => handleCardClick(idx, e);
         cardDiv.classList.add("playable");
       } else cardDiv.classList.add("disabled");
       hand.appendChild(cardDiv);
