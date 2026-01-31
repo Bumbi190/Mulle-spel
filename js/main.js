@@ -73,11 +73,13 @@ function handleCardClick(cardIndex) {
   if (buildSelection.includes(card)) {
     buildSelection = buildSelection.filter(c => c !== card);
   } else {
+    if (buildSelection.length === 2) return; // max två
     buildSelection.push(card);
   }
 
   render();
 }
+
 
 // ================= ACTIONS =================
 function playSelectedCard() {
