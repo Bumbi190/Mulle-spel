@@ -59,6 +59,15 @@ function getCardHandValue(card) {
   return typeof card.rank === "number" ? card.rank : 10;
 }
 
+function playerHasBuildValue(player, value, usedCards) {
+  return player.hand.some(
+    c =>
+      !usedCards.includes(c) &&
+      getCardHandValue(c) === value
+  );
+}
+
+
 // ================= BUILDS =================
 function createBuild(cards, owner) {
   return {
@@ -105,8 +114,6 @@ function playSelectedCard() {
 }
 
 function buildSelectedCards() {
-  console.log("Bygg klickad, valda kort:", buildSelection);
-
   const player = game.players[game.currentPlayer];
 
   if (buildSelection.length !== 2) {
@@ -114,20 +121,31 @@ function buildSelectedCards() {
     return;
   }
 
-  // skapa bygge
+  const buildValue = buildSelection.reduce(
+    (s, c) => s + getCardTableValue(c),
+    0
+  );
+
+  // 🔒 NY REGEL: måste kunna ta bygget själv
+  if (!playerHasBuildValue(player, buildValue, buildSelection)) {
+    alert(
+      `Ogiltigt bygge: du har inget ${buildValue}-kort kvar på handen`
+    );
+    return;
+  }
+
   const build = createBuild(buildSelection, game.currentPlayer);
 
-  // ta bort korten från handen
+  // ta bort byggkorten
   player.hand = player.hand.filter(c => !buildSelection.includes(c));
 
-  // lägg bygge på bordet
   game.builds.push(build);
 
-  // rensa val & gå vidare
   buildSelection = [];
   nextPlayer();
   render();
 }
+
 
 // ================= PLAY =================
 function playCard(cardIndex) {
