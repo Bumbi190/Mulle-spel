@@ -49,15 +49,33 @@ function getCardTableValue(card) {
   if (card.rank === "A") return 1;
   if (card.rank === 2 && card.suit === "spades") return 2;
   if (card.rank === 10 && card.suit === "diamonds") return 10;
+
+  if (card.rank === "J") return 11;
+  if (card.rank === "Q") return 12;
+  if (card.rank === "K") return 13;
+
   return typeof card.rank === "number" ? card.rank : 10;
 }
 
+
 function getCardHandValue(card) {
+  // Specialkort i fängelse-Mulle
   if (card.rank === "A") return 14;
-  if (card.rank === 2 && card.suit === "spades") return 15;
-  if (card.rank === 10 && card.suit === "diamonds") return 16;
-  return typeof card.rank === "number" ? card.rank : 10;
+  if (card.rank === 2 && card.suit === "spades") return 15;      // spader 2
+  if (card.rank === 10 && card.suit === "diamonds") return 16;   // ruter 10
+
+  // Klädda kort på HANDEN
+  if (card.rank === "J") return 11;
+  if (card.rank === "Q") return 12;
+  if (card.rank === "K") return 13;
+
+  // Siffror
+  if (typeof card.rank === "number") return card.rank;
+
+  // fallback (borde aldrig hända)
+  return 10;
 }
+
 
 function playerHasBuildValue(player, value, usedCards) {
   return player.hand.some(
