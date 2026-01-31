@@ -211,14 +211,16 @@ function tryTakeBuild(buildIndex) {
 
   game.builds.splice(buildIndex, 1);
 
+  // Tabbe om både bord + byggen är tomt
   if (game.tableCards.length === 0 && game.builds.length === 0) {
     player.tabbes++;
-
+  }
 
   buildSelection = [];
   nextPlayer();
   render();
 }
+
 
 // ================= SUM =================
 function findSumCombination(target) {
