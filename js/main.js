@@ -133,53 +133,40 @@ function playSelectedCard() {
 
 function buildSelectedCards() {
   const player = game.players[game.currentPlayer];
-  const buildValue = buildSelection.reduce(
-  (s, c) => s + getCardTableValue(c), 0
-);
 
-const hasMatchingCard = player.hand.some(
-  c => getCardHandValue(c) === buildValue
-);
-
-if (!hasMatchingCard) {
-  alert(`Ogiltigt bygge: du har inget ${buildValue}-kort kvar på handen`);
-  return;
-}
-
-
+  // 1) måste välja exakt två kort
   if (buildSelection.length !== 2) {
     alert("Välj exakt två kort för att bygga");
     return;
   }
 
+  // 2) räkna byggvärdet (BORDSVÄRDE)
   const buildValue = buildSelection.reduce(
-    (s, c) => s + getCardTableValue(c),
+    (sum, c) => sum + getCardTableValue(c),
     0
   );
 
-  // ✅ RÄTT REGEL: måste ha HANDKORT som kan ta bygget
+  // 3) regel: du måste ha ett KVAR handkort som kan ta bygget
   const canTake = player.hand.some(
-    c =>
-      !buildSelection.includes(c) &&
-      getCardHandValue(c) === buildValue
+    c => !buildSelection.includes(c) && getCardHandValue(c) === buildValue
   );
 
   if (!canTake) {
-    alert(
-      `Ogiltigt bygge: du har inget handkort med värde ${buildValue}`
-    );
+    alert(`Ogiltigt bygge: du har inget handkort kvar med värde ${buildValue}`);
     return;
   }
 
+  // 4) skapa bygge + ta bort valda kort
   const build = createBuild(buildSelection, game.currentPlayer);
-
   player.hand = player.hand.filter(c => !buildSelection.includes(c));
   game.builds.push(build);
 
+  // 5) clear selection + nästa spelare
   buildSelection = [];
   nextPlayer();
   render();
 }
+
 
 
 // ================= PLAY =================
@@ -240,7 +227,7 @@ function tryTakeBuild(buildIndex) {
     return;
   }
 
-  // Matcha på BORDSVÄRDE (så ess = 1, ruter 10 = 10 etc)
+  // Matcha mot HANDVÄRDE (J=11, Q=12, K=13, A=14, specialkort 15/16)
   const handIndex = player.hand.findIndex(
   c => getCardHandValue(c) === build.value
 );
