@@ -128,14 +128,16 @@ function buildSelectedCards() {
     return;
   }
 
-  // byggvärde räknas med BORDSVÄRDE
+  // Byggvärde räknas med bordsvärde
   const buildValue = buildSelection.reduce(
     (s, c) => s + getCardTableValue(c), 0
   );
 
-  // REGEL: du måste ha ett HANDKORT kvar som kan ta bygget
+  // Regel: måste ha ett handkort som kan ta bygget
   const canTakeLater = player.hand.some(
-    c => !buildSelection.includes(c) && getCardHandValue(c) === buildValue
+    c =>
+      !buildSelection.includes(c) &&
+      getCardHandValue(c) === buildValue
   );
 
   if (!canTakeLater) {
@@ -143,9 +145,13 @@ function buildSelectedCards() {
     return;
   }
 
-  // skapa och lägg bygge
+  // Skapa bygget
   const build = createBuild(buildSelection, game.currentPlayer);
+
+  // Ta bort korten från handen
   player.hand = player.hand.filter(c => !buildSelection.includes(c));
+
+  // Lägg bygget på bordet
   game.builds.push(build);
 
   buildSelection = [];
