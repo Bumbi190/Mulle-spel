@@ -126,19 +126,23 @@ function buildSelectedCards() {
     0
   );
 
-  // 🔒 NY REGEL: måste kunna ta bygget själv
-  if (!playerHasBuildValue(player, buildValue, buildSelection)) {
+  // ✅ RÄTT REGEL: måste ha HANDKORT som kan ta bygget
+  const canTake = player.hand.some(
+    c =>
+      !buildSelection.includes(c) &&
+      getCardHandValue(c) === buildValue
+  );
+
+  if (!canTake) {
     alert(
-      `Ogiltigt bygge: du har inget ${buildValue}-kort kvar på handen`
+      `Ogiltigt bygge: du har inget handkort med värde ${buildValue}`
     );
     return;
   }
 
   const build = createBuild(buildSelection, game.currentPlayer);
 
-  // ta bort byggkorten
   player.hand = player.hand.filter(c => !buildSelection.includes(c));
-
   game.builds.push(build);
 
   buildSelection = [];
@@ -207,7 +211,7 @@ function tryTakeBuild(buildIndex) {
 
   // Matcha på BORDSVÄRDE (så ess = 1, ruter 10 = 10 etc)
   const handIndex = player.hand.findIndex(
-    c => getCardTableValue(c) === build.value
+    c => getCardHandValue(c) === build.value
   );
 
   if (handIndex === -1) {
