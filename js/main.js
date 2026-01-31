@@ -162,9 +162,9 @@ function tryTakeBuild(buildIndex) {
   );
 
   if (handIndex === -1) {
-    alert("Du har inget kort som kan ta detta bygge");
-    return;
-  }
+  alert(`Du måste ha ${build.value} på handen för att ta detta bygge`);
+  return;
+}
 
   // Ta kortet från handen
   const card = player.hand.splice(handIndex, 1)[0];
