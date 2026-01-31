@@ -178,7 +178,13 @@ function playCard() {
   }
 
   // 2) SUMTAGNING: ta kort från bordet som summerar till handvärdet
-  if (handCard.rank !== "A") { // Ess får INTE tas direkt
+  // Ess, Lillan (♠2) och Storan (♦10) måste byggas - kan INTE tas direkt
+  const isBuildOnlyCard =
+    handCard.rank === "A" ||
+    (handCard.rank === 2 && handCard.suit === "spades") ||
+    (handCard.rank === 10 && handCard.suit === "diamonds");
+
+  if (!isBuildOnlyCard) {
     const target = getCardHandValue(handCard);
     const taken = findSumCombination(target);
 
@@ -699,15 +705,14 @@ function canMulle(card) {
 
 // ================= POÄNGRÄKNING =================
 function getCardScore(card) {
-  // Alla spader
+  // Specialkort först (annars blir ♠A och ♠2 bara 1p)
+  if (card.rank === "A" && card.suit === "spades") return 2;         // ♠A = 2p
+  if (card.rank === "A") return 1;                                   // Andra ess = 1p
+  if (card.rank === 2 && card.suit === "spades") return 2;           // ♠2 = 2p
+  if (card.rank === 10 && card.suit === "diamonds") return 2;        // ♦10 = 2p
+
+  // Alla andra spader = 1p
   if (card.suit === "spades") return 1;
-
-  // Ess
-  if (card.rank === "A") return card.suit === "spades" ? 2 : 1;
-
-  // Specialkort
-  if (card.rank === 2 && card.suit === "spades") return 2;     // ♠2
-  if (card.rank === 10 && card.suit === "diamonds") return 2;  // ♦10
 
   return 0;
 }
@@ -782,21 +787,20 @@ function handleBoat() {
 
   const player = game.players[game.lastTaker];
 
+  // Ta alla kvarvarande kort från bordet
   if (game.tableCards.length > 0) {
     player.takenCards.push(...game.tableCards);
     game.tableCards = [];
-
-    // Tabbe om byggen också är tomma
-    if (game.builds.length === 0) {
-      player.tabbes++;
-    }
   }
 
-  // Ta alla återstående byggen också
+  // Ta alla återstående byggen
   game.builds.forEach(b => {
     player.takenCards.push(...b.cards);
   });
   game.builds = [];
+
+  // Båt ger alltid +1 tabbe (konsekvent regel)
+  player.tabbes++;
 
   updateScores();
   render();
@@ -809,28 +813,53 @@ function handleBoat() {
 function endGame() {
   updateScores();
   
+  // Sortera: högst poäng först
   const results = game.players
     .map((p, i) => ({ ...p, index: i }))
     .sort((a, b) => b.score - a.score);
 
-  let resultText = "🏆 SLUTRESULTAT 🏆\n\n";
+  // Vinnare är den med FLEST poäng (results[0])
+  const winner = results[0];
+
+  // Skapa Game Over-screen
+  const gameArea = document.getElementById("game");
+  gameArea.innerHTML = "";
+
+  const gameOverDiv = document.createElement("div");
+  gameOverDiv.className = "game-over-screen";
+
+  let resultsHTML = '<div class="game-over-content">';
+  resultsHTML += '<h2>🏁 SPELET SLUT! 🏁</h2>';
+  resultsHTML += `<div class="winner-announcement">👑 ${winner.name} VANN! 👑</div>`;
+  resultsHTML += `<div class="winner-score">${winner.score} poäng</div>`;
+  
+  resultsHTML += '<div class="final-scores"><h3>📊 Slutställning:</h3>';
   
   results.forEach((p, i) => {
-    resultText += `${i + 1}. ${p.name}: ${p.score}p\n`;
-    if (p.score > 100) {
-      resultText += `   🥵 SENAP! (100+ poäng)\n`;
-    }
+    let playerClass = 'score-place';
+    if (i === 0) playerClass += ' first-place';
+    else if (i === 1) playerClass += ' second-place';
+    else if (i === 2) playerClass += ' third-place';
+    
+    resultsHTML += `<div class="${playerClass}">`;
+    resultsHTML += `<span class="place-number">${i + 1}.</span>`;
+    resultsHTML += `<span class="player-name">${p.name}</span>`;
+    resultsHTML += `<span class="player-score">${p.score}p</span>`;
+    
     if (p.score > 200) {
-      resultText += `   🍅 KETCHUP! (200+ poäng)\n`;
+      resultsHTML += '<span class="badge ketchup">🍅 KETCHUP</span>';
+    } else if (p.score > 100) {
+      resultsHTML += '<span class="badge senap">🥵 SENAP</span>';
     }
+    
+    resultsHTML += '</div>';
   });
+  
+  resultsHTML += '</div>'; // final-scores
+  
+  resultsHTML += '<button class="play-again-btn" onclick="location.reload()">🔄 Spela igen</button>';
+  resultsHTML += '</div>'; // game-over-content
 
-  const winner = results[results.length - 1];
-  resultText += `\n👑 VINNARE: ${winner.name} med ${winner.score}p!`;
-
-  alert(resultText);
-
-  if (confirm("Vill du spela igen?")) {
-    location.reload();
-  }
+  gameOverDiv.innerHTML = resultsHTML;
+  gameArea.appendChild(gameOverDiv);
 }
