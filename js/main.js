@@ -204,6 +204,141 @@ function render() {
 
     p.hand.forEach((c, idx) => {
       const cardDiv = renderCard(c);
+      if (buildSelection.includes(c)) {
+  cardDiv.classList.add("selected");
+}
+      if (i === game.currentPlayer) {
+        cardDiv.onclick = () => handleCardClick(idx);
+        if (buildSelection.includes(c)) cardDiv.classList.add("selected");
+        
+        
+      } else {
+        cardDiv.classList.add("disabled");
+      }
+      hand.appendChild(cardDiv);
+    });
+
+    div.appendChild(hand);
+
+    if (i === game.currentPlayer) {
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const playBtn = document.createElement("button");
+      playBtn.textContent = "Spela kort";
+      playBtn.onclick = playSelectedCard;
+
+      const buildBtn = document.createElement("button");
+      buildBtn.textContent = "Bygg";
+      buildBtn.onclick = buildSelectedCards;
+
+      actions.appendChild(playBtn);
+      actions.appendChild(buildBtn);
+      div.appendChild(actions);
+    }
+
+    area.appendChild(div);
+  });
+}function render() {
+  const status = document.getElementById("status");
+  const area = document.getElementById("game");
+
+  status.textContent = `Tur: ${game.players[game.currentPlayer].name}`;
+  area.innerHTML = "";
+
+  const table = document.createElement("div");
+  table.className = "table";
+
+  game.tableCards.forEach(c => table.appendChild(renderCard(c)));
+
+  game.builds.forEach(b => {
+    const div = document.createElement("div");
+    div.className = "build";
+    div.textContent = `Bygge ${b.value}`;
+    table.appendChild(div);
+  });
+
+  area.appendChild(table);
+
+  game.players.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "player";
+    div.innerHTML = `<h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>`;
+
+    const hand = document.createElement("div");
+    hand.className = "hand";
+
+    p.hand.forEach((c, idx) => {
+      const cardDiv = renderCard(c);
+      if (buildSelection.includes(c)) {
+  cardDiv.classList.add("selected");
+}
+      if (i === game.currentPlayer) {
+        cardDiv.onclick = () => handleCardClick(idx);
+        if (buildSelection.includes(c)) cardDiv.classList.add("selected");
+        
+        
+      } else {
+        cardDiv.classList.add("disabled");
+      }
+      hand.appendChild(cardDiv);
+    });
+
+    div.appendChild(hand);
+
+    if (i === game.currentPlayer) {
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const playBtn = document.createElement("button");
+      playBtn.textContent = "Spela kort";
+      playBtn.onclick = playSelectedCard;
+
+      const buildBtn = document.createElement("button");
+      buildBtn.textContent = "Bygg";
+      buildBtn.onclick = buildSelectedCards;
+
+      actions.appendChild(playBtn);
+      actions.appendChild(buildBtn);
+      div.appendChild(actions);
+    }
+
+    area.appendChild(div);
+  });
+}function render() {
+  const status = document.getElementById("status");
+  const area = document.getElementById("game");
+
+  status.textContent = `Tur: ${game.players[game.currentPlayer].name}`;
+  area.innerHTML = "";
+
+  const table = document.createElement("div");
+  table.className = "table";
+
+  game.tableCards.forEach(c => table.appendChild(renderCard(c)));
+
+  game.builds.forEach(b => {
+    const div = document.createElement("div");
+    div.className = "build";
+    div.textContent = `Bygge ${b.value}`;
+    table.appendChild(div);
+  });
+
+  area.appendChild(table);
+
+  game.players.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "player";
+    div.innerHTML = `<h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>`;
+
+    const hand = document.createElement("div");
+    hand.className = "hand";
+
+    p.hand.forEach((c, idx) => {
+      const cardDiv = renderCard(c);
+      if (buildSelection.includes(c)) {
+  cardDiv.classList.add("selected");
+}
       if (i === game.currentPlayer) {
         cardDiv.onclick = () => handleCardClick(idx);
         if (buildSelection.includes(c)) cardDiv.classList.add("selected");
