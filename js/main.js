@@ -66,39 +66,18 @@ function createBuild(cards, ownerIndex) {
   };
 }
 
-
-// ================= PLAY =================
-function playCard(cardIndex) {
-  const player = game.players[game.currentPlayer];
-  const card = player.hand.splice(cardIndex, 1)[0];
-
-  // MULLE – lika med lika
-  const match = game.tableCards.find(
-    c => c.rank === card.rank && c.suit === card.suit
-  );
-
-  if (match) {
-    player.mulleCards.push(card, match);
-    game.tableCards = game.tableCards.filter(c => c !== match);
-    nextPlayer();
-    return render();
-  }
-
-  function handleCardClick(cardIndex) {
+function handleCardClick(cardIndex) {
   const player = game.players[game.currentPlayer];
 
-  // Om vi håller på att välja bygge
+  // Andra klicket → skapa bygge
   if (buildSelection.length === 1) {
     const firstCard = buildSelection[0];
     const secondCard = player.hand[cardIndex];
 
-    // Samma kort får inte väljas två gånger
     if (firstCard === secondCard) return;
 
-    // Skapa bygge med exakt två kort
     const build = createBuild([firstCard, secondCard], game.currentPlayer);
 
-    // Ta bort korten från handen
     player.hand = player.hand.filter(
       c => c !== firstCard && c !== secondCard
     );
@@ -111,11 +90,29 @@ function playCard(cardIndex) {
     return;
   }
 
-  // Annars: börja bygga med första kortet
+  // Första klicket → välj kort
   buildSelection = [player.hand[cardIndex]];
   render();
 }
 
+
+// ================= PLAY =================
+function playCard(cardIndex) {
+  const player = game.players[game.currentPlayer];
+  const card = player.hand.splice(cardIndex, 1)[0];
+
+  // MULLE – lika kort
+  const matchIndex = game.tableCards.findIndex(
+    c => c.rank === card.rank && c.suit === card.suit
+  );
+
+  if (matchIndex !== -1) {
+    const match = game.tableCards.splice(matchIndex, 1)[0];
+    player.mulleCards.push(card, match);
+    nextPlayer();
+    render();
+    return;
+  }
 
   // VANLIG TAGNING (summa)
   const cardValue = getCardHandValue(card);
@@ -127,7 +124,8 @@ function playCard(cardIndex) {
 
     if (game.tableCards.length === 0) player.tabbes++;
     nextPlayer();
-    return render();
+    render();
+    return;
   }
 
   // ANNARS LÄGG UT
@@ -135,6 +133,7 @@ function playCard(cardIndex) {
   nextPlayer();
   render();
 }
+
 
 // ================= SUM LOGIC =================
 function findSumCombination(target) {
