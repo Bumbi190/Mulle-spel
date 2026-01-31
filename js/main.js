@@ -7,7 +7,9 @@ const game = {
   tableCards: [],
   builds: [],
   currentPlayer: 0,
+  lastTaker: null   // 👈 NY
 };
+
 
 let buildSelection = []; // valda handkort (max 2)
 
@@ -178,9 +180,11 @@ function playCard(cardIndex) {
   if (matchIndex !== -1) {
     const match = game.tableCards.splice(matchIndex, 1)[0];
     player.mulleCards.push(card, match);
+    game.lastTaker = game.currentPlayer;
     updateScores();
 
     nextPlayer();
+    checkNewDealOrEnd();
     render();
     return;
   }
@@ -191,6 +195,7 @@ function playCard(cardIndex) {
 
   if (taken.length) {
   player.takenCards.push(card, ...taken);
+  game.lastTaker = game.currentPlayer;
   game.tableCards = game.tableCards.filter((c) => !taken.includes(c));
 
   if (game.tableCards.length === 0 && game.builds.length === 0) {
@@ -234,7 +239,7 @@ function tryTakeBuild(buildIndex) {
 
   const takeCard = player.hand.splice(handIndex, 1)[0];
   player.takenCards.push(takeCard, ...build.cards);
-
+  game.lastTaker = game.currentPlayer;
   game.builds.splice(buildIndex, 1);
 
   // Tabbe om bord + byggen blev tomma
@@ -245,6 +250,7 @@ function tryTakeBuild(buildIndex) {
   buildSelection = [];
   updateScores();   // 👈 NY
   nextPlayer();
+  checkNewDealOrEnd();
   render();
 }
 
@@ -472,4 +478,41 @@ function updateScores() {
   game.players.forEach(p => {
     p.score = calculatePlayerScore(p);
   });
+}
+
+function checkNewDealOrEnd() {
+  const allHandsEmpty = game.players.every(p => p.hand.length === 0);
+
+  if (!allHandsEmpty) return;
+
+  // 🔁 NY GIV
+  if (game.deck.length >= game.players.length * 4) {
+    deal(game.deck, game.players, 4);
+    render();
+    return;
+  }
+
+  // 🚤 BÅT (leken slut)
+  handleBoat();
+}
+
+function handleBoat() {
+  if (game.lastTaker === null) return;
+
+  const player = game.players[game.lastTaker];
+
+  if (game.tableCards.length > 0) {
+    player.takenCards.push(...game.tableCards);
+    game.tableCards = [];
+
+    // Tabbe om byggen också är tomma
+    if (game.builds.length === 0) {
+      player.tabbes++;
+    }
+  }
+
+  updateScores();
+  render();
+
+  alert(`🚤 Båt! ${player.name} tar sista korten.`);
 }
