@@ -1,4 +1,3 @@
-alert("JS LADDAD");
 console.log("🔥 MULLE – Fängelseedition (Core v1)");
 
 // ================= GAME STATE =================
