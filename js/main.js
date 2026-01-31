@@ -40,6 +40,8 @@ function createPlayers(n) {
     takenCards: [],
     mulleCards: [], // sparar Mulle-par (2 kort per mulle)
     tabbes: 0,
+    score: 0
+
   }));
 }
 
@@ -322,7 +324,10 @@ function render() {
     div.innerHTML = `
       <h3>${p.name}${i === game.currentPlayer ? " ← TUR" : ""}</h3>
       <div style="font-size:12px; opacity:0.8;">
-        Tagna: ${p.takenCards.length} kort • Mullar: ${p.mulleCards.length / 2} • Tabbar: ${p.tabbes}
+        Tagna: ${p.takenCards.length}
+• Mullar: ${p.mulleCards.length / 2}
+• Tabbar: ${p.tabbes}
+• 🧮 Poäng: ${p.score}
       </div>
     `;
 
@@ -361,6 +366,18 @@ function render() {
 
       actions.appendChild(playBtn);
       actions.appendChild(buildBtn);
+      
+      const scoreBtn = document.createElement("button");
+scoreBtn.textContent = "Räkna poäng";
+scoreBtn.onclick = () => {
+  game.players.forEach(p => {
+    p.score = calculatePlayerScore(p);
+  });
+  render();
+};
+
+actions.appendChild(scoreBtn);
+
       div.appendChild(actions);
     }
 
@@ -404,4 +421,55 @@ function shuffle(arr) {
 
 function getSuitSymbol(s) {
   return { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" }[s];
+}
+
+// ================= POÄNGRÄKNING =================
+
+// Poäng för ett enskilt kort
+function getCardScore(card) {
+  // Alla spader
+  if (card.suit === "spades") return 1;
+
+  // Ess
+  if (card.rank === "A") return card.suit === "spades" ? 2 : 1;
+
+  // Specialkort
+  if (card.rank === 2 && card.suit === "spades") return 2;     // ♠2
+  if (card.rank === 10 && card.suit === "diamonds") return 2;  // ♦10
+
+  return 0;
+}
+
+// Poäng för en mulle
+function getMulleScore(card) {
+  if (card.rank === "A") return 14;
+  if (card.rank === 2 && card.suit === "spades") return 15;
+  if (card.rank === 10 && card.suit === "diamonds") return 16;
+
+  if (typeof card.rank === "number") return card.rank;
+  if (card.rank === "J") return 11;
+  if (card.rank === "Q") return 12;
+  if (card.rank === "K") return 13;
+
+  return 0;
+}
+
+// Räkna total poäng för en spelare
+function calculatePlayerScore(player) {
+  let score = 0;
+
+  // Vanliga tagna kort
+  player.takenCards.forEach(card => {
+    score += getCardScore(card);
+  });
+
+  // Mullar
+  player.mulleCards.forEach(card => {
+    score += getMulleScore(card);
+  });
+
+  // Tabbar
+  score += player.tabbes;
+
+  return score;
 }
