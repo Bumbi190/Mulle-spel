@@ -177,4 +177,37 @@ body {
   align-items: center;
   justify-content: center;
 }
+.build {
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: #fff;
+  font-size: 14px;
+  text-align: center;
+  min-width: 80px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.build-value {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.build-owner {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Eget bygge */
+.build.own-build {
+  border-color: #00c853;
+  background: #e8f5e9;
+}
+
+/* Motståndares bygge */
+.build.other-build {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
