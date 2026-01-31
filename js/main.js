@@ -103,6 +103,7 @@ function handleCardClick(cardIndex, event) {
 
 
 
+
 // ================= PLAY =================
 function playCard(cardIndex) {
   const player = game.players[game.currentPlayer];
