@@ -161,3 +161,7 @@ body {
   cursor: pointer;
 }
 
+.selected {
+  outline: 3px solid #00c853;
+  background: #e8f5e9;
+}
