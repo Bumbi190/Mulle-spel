@@ -145,6 +145,48 @@ function playCard(cardIndex) {
   render();
 }
 
+//Ta bygge
+function tryTakeBuild(buildIndex) {
+  const player = game.players[game.currentPlayer];
+  const build = game.builds[buildIndex];
+
+  // ❌ Får bara ta sitt eget bygge
+  if (build.owner !== game.currentPlayer) {
+    alert("Du får bara ta ditt eget bygge");
+    return;
+  }
+
+  // Hitta kort på handen som matchar byggvärdet
+  const handIndex = player.hand.findIndex(
+    c => getCardHandValue(c) === build.value
+  );
+
+  if (handIndex === -1) {
+    alert("Du har inget kort som kan ta detta bygge");
+    return;
+  }
+
+  // Ta kortet från handen
+  const card = player.hand.splice(handIndex, 1)[0];
+
+  // Lägg allt i takenCards
+  player.takenCards.push(card, ...build.cards);
+
+  // Ta bort bygget från bordet
+  game.builds.splice(buildIndex, 1);
+
+  // Tabbe om bord + byggen blir tomma
+  if (game.tableCards.length === 0 && game.builds.length === 0) {
+    player.tabbes++;
+  }
+
+  // Rensa val
+  buildSelection = [];
+
+  nextPlayer();
+  render();
+}
+
 // ================= SUM =================
 function findSumCombination(target) {
   let result = [];
@@ -185,12 +227,16 @@ function render() {
 
   game.tableCards.forEach(c => table.appendChild(renderCard(c)));
 
-  game.builds.forEach(b => {
-    const div = document.createElement("div");
-    div.className = "build";
-    div.textContent = `Bygge ${b.value}`;
-    table.appendChild(div);
-  });
+  game.builds.forEach((b, index) => {
+  const div = document.createElement("div");
+  div.className = "build";
+  div.textContent = `Bygge ${b.value}`;
+
+  // Klicka för att försöka ta bygget
+  div.onclick = () => tryTakeBuild(index);
+
+  table.appendChild(div);
+});
 
   area.appendChild(table);
 
