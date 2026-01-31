@@ -230,10 +230,21 @@ function render() {
   game.builds.forEach((b, index) => {
   const div = document.createElement("div");
   div.className = "build";
-  div.textContent = `Bygge ${b.value}`;
 
-  // Klicka för att försöka ta bygget
-  div.onclick = () => tryTakeBuild(index);
+  const owner = game.players[b.owner].name;
+
+  div.innerHTML = `
+    <div class="build-value">Bygge ${b.value}</div>
+    <div class="build-owner">${owner}</div>
+  `;
+
+  // Markera egna byggen
+  if (b.owner === game.currentPlayer) {
+    div.classList.add("own-build");
+    div.onclick = () => tryTakeBuild(index);
+  } else {
+    div.classList.add("other-build");
+  }
 
   table.appendChild(div);
 });
