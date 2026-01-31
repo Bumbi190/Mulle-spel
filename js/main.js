@@ -8,6 +8,7 @@ const game = {
   builds: [],
   currentPlayer: 0,
   lastTaker: null,
+  lastMove: null, // Senaste draget som visas i UI
   teamMode: false, // Kan aktiveras för 2v2
   dealCount: 0
 };
@@ -163,10 +164,12 @@ function playCard() {
       const match = game.tableCards.splice(matchIndex, 1)[0];
       player.mulleCards.push(handCard, match);
       game.lastTaker = game.currentPlayer;
+      game.lastMove = `${player.name} tog MULLE med ${handCard.rank}${getSuitSymbol(handCard.suit)} (+${getMulleScore(handCard)}p)`;
 
       // Tabbe om bordet blev tomt
       if (game.tableCards.length === 0 && game.builds.length === 0) {
         player.tabbes++;
+        game.lastMove += ` och fick TABBE!`;
       }
 
       updateScores();
@@ -179,23 +182,22 @@ function playCard() {
 
   // 2) SUMTAGNING: ta kort från bordet som summerar till handvärdet
   // Ess, Lillan (♠2) och Storan (♦10) måste byggas - kan INTE tas direkt
-  const isBuildOnlyCard =
-    handCard.rank === "A" ||
-    (handCard.rank === 2 && handCard.suit === "spades") ||
-    (handCard.rank === 10 && handCard.suit === "diamonds");
-
-  if (!isBuildOnlyCard) {
+  if (!isBuildOnlyCard(handCard)) {
     const target = getCardHandValue(handCard);
     const taken = findSumCombination(target);
 
     if (taken.length) {
       player.takenCards.push(handCard, ...taken);
       game.lastTaker = game.currentPlayer;
+      const takenStr = taken.map(c => `${c.rank}${getSuitSymbol(c.suit)}`).join('+');
+      game.lastMove = `${player.name} tog ${taken.length} kort (${takenStr}) med ${handCard.rank}${getSuitSymbol(handCard.suit)}`;
+      
       game.tableCards = game.tableCards.filter(c => !taken.includes(c));
 
       // Tabbe om bordet blev tomt
       if (game.tableCards.length === 0 && game.builds.length === 0) {
         player.tabbes++;
+        game.lastMove += ` och fick TABBE!`;
       }
 
       updateScores();
@@ -208,6 +210,7 @@ function playCard() {
 
   // 3) Annars: lägg ut på bordet
   game.tableCards.push(handCard);
+  game.lastMove = `${player.name} lade ut ${handCard.rank}${getSuitSymbol(handCard.suit)}`;
   nextPlayer();
   render();
 }
@@ -258,6 +261,7 @@ function createBuildAction() {
   // Skapa bygget
   const build = createBuild(allCards, game.currentPlayer, false);
   game.builds.push(build);
+  game.lastMove = `${player.name} byggde ${buildValue} (${allCards.map(c => `${c.rank}${getSuitSymbol(c.suit)}`).join('+')})`;
 
   selectedCards = [];
   nextPlayer();
@@ -328,6 +332,7 @@ function packageBuild() {
     // Lägg till korten i bygget
     targetBuild.cards.push(...allCards);
     targetBuild.isPackaged = true; // Nu är det paketerat
+    game.lastMove = `${player.name} paketerade bygge ${targetValue} med ${allCards.map(c => `${c.rank}${getSuitSymbol(c.suit)}`).join('+')}`;
 
     // Ta bort kort från hand
     handCards.forEach(hc => {
@@ -376,10 +381,13 @@ function extendBuild() {
   const choice = prompt(`Bygga UPPÅT till ${newValue} eller NERÅT till ${downValue}? (u/n)`);
 
   let finalValue;
+  let direction;
   if (choice === 'u') {
     finalValue = newValue;
+    direction = 'uppåt';
   } else if (choice === 'n') {
     finalValue = downValue;
+    direction = 'neråt';
   } else {
     alert("Ogiltig val, avbryter");
     return;
@@ -398,6 +406,7 @@ function extendBuild() {
   // Lägg till kortet i bygget
   targetBuild.cards.push(card);
   targetBuild.value = finalValue;
+  game.lastMove = `${player.name} byggde ${direction} från ${buildValue} till ${finalValue} med ${card.rank}${getSuitSymbol(card.suit)}`;
 
   // Ta bort från hand
   const idx = player.hand.indexOf(card);
@@ -423,6 +432,12 @@ function takeBuild() {
   const buildIndex = builds[0].index;
   const card = handCards[0].card;
 
+  // REGEL: Du får inte ta paketerade motståndarbyggen
+  if (build.owner !== game.currentPlayer && build.isPackaged) {
+    alert("Du kan inte ta paketerade motståndarbyggen - bara dina egna eller opaketera motståndarbyggen");
+    return;
+  }
+
   // Kontrollera att handkortet kan ta bygget
   if (getCardHandValue(card) !== build.value) {
     alert(`Du måste använda ett kort med värde ${build.value} för att ta detta bygge`);
@@ -432,6 +447,8 @@ function takeBuild() {
   // Ta bygget
   player.takenCards.push(card, ...build.cards);
   game.lastTaker = game.currentPlayer;
+  const buildOwner = game.players[build.owner].name;
+  game.lastMove = `${player.name} tog ${buildOwner}s bygge ${build.value} med ${card.rank}${getSuitSymbol(card.suit)}`;
 
   // Ta bort bygget
   game.builds.splice(buildIndex, 1);
@@ -443,6 +460,7 @@ function takeBuild() {
   // Tabbe om allt blev tomt
   if (game.tableCards.length === 0 && game.builds.length === 0) {
     player.tabbes++;
+    game.lastMove += ` och fick TABBE!`;
   }
 
   selectedCards = [];
@@ -489,6 +507,14 @@ function render() {
   const player = game.players[game.currentPlayer];
   status.textContent = `Tur: ${player.name} | Giv: ${game.dealCount}`;
   area.innerHTML = "";
+
+  // ===== SENASTE DRAG =====
+  if (game.lastMove) {
+    const lastMoveDiv = document.createElement("div");
+    lastMoveDiv.className = "last-move";
+    lastMoveDiv.innerHTML = `<strong>📜 Senaste drag:</strong> ${game.lastMove}`;
+    area.appendChild(lastMoveDiv);
+  }
 
   // ===== INSTRUKTIONER =====
   const instructions = document.createElement("div");
@@ -697,10 +723,19 @@ function getSuitSymbol(s) {
   return { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" }[s];
 }
 
+function isBuildOnlyCard(card) {
+  // Dessa kort MÅSTE byggas - kan inte tas direkt
+  return (
+    card.rank === "A" ||
+    (card.rank === 2 && card.suit === "spades") ||
+    (card.rank === 10 && card.suit === "diamonds")
+  );
+}
+
 function canMulle(card) {
-  // Ess får ALDRIG mulle-tas direkt
-  if (card.rank === "A") return false;
-  return true;
+  // Ess får ALDRIG mulle-tas (använder samma logik)
+  // Men ♠2 och ♦10 kan mullas om de ligger på bordet
+  return card.rank !== "A";
 }
 
 // ================= POÄNGRÄKNING =================
@@ -739,12 +774,14 @@ function calculatePlayerScore(player) {
   });
 
   // Mullar (2 kort per mulle)
+  // Kvittning betyder bara att mullar + tabbar räknas ihop
+  // T.ex. Mulle-5 + 2 tabbar = 7p totalt (inte något speciellt)
   for (let i = 0; i < player.mulleCards.length; i += 2) {
     const card = player.mulleCards[i];
     score += getMulleScore(card);
   }
 
-  // Tabbar
+  // Tabbar (kvittas naturligt med mullar genom addition)
   score += player.tabbes;
 
   return score;
