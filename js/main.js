@@ -368,3 +368,4 @@ function shuffle(arr) {
 function getSuitSymbol(s) {
   return { spades:"♠", hearts:"♥", diamonds:"♦", clubs:"♣" }[s];
 }
+  }
