@@ -178,6 +178,7 @@ function playCard(cardIndex) {
   if (matchIndex !== -1) {
     const match = game.tableCards.splice(matchIndex, 1)[0];
     player.mulleCards.push(card, match);
+    updateScores();
 
     nextPlayer();
     render();
@@ -189,18 +190,19 @@ function playCard(cardIndex) {
   const taken = findSumCombination(target);
 
   if (taken.length) {
-    player.takenCards.push(card, ...taken);
-    game.tableCards = game.tableCards.filter((c) => !taken.includes(c));
+  player.takenCards.push(card, ...taken);
+  game.tableCards = game.tableCards.filter((c) => !taken.includes(c));
 
-    // Tabbe om bord + byggen blev tomma
-    if (game.tableCards.length === 0 && game.builds.length === 0) {
-      player.tabbes++;
-    }
-
-    nextPlayer();
-    render();
-    return;
+  if (game.tableCards.length === 0 && game.builds.length === 0) {
+    player.tabbes++;
   }
+
+  updateScores();   // 👈 NY
+  nextPlayer();
+  render();
+  return;
+}
+
 
   // 3) Annars: lägg ut på bordet
   game.tableCards.push(card);
@@ -241,6 +243,7 @@ function tryTakeBuild(buildIndex) {
   }
 
   buildSelection = [];
+  updateScores();   // 👈 NY
   nextPlayer();
   render();
 }
@@ -367,19 +370,6 @@ function render() {
       actions.appendChild(playBtn);
       actions.appendChild(buildBtn);
       
-      const scoreBtn = document.createElement("button");
-scoreBtn.textContent = "Räkna poäng";
-scoreBtn.onclick = () => {
-  console.log(
-  game.players.map(p => `${p.name}: ${p.score}p`)
-);
-  game.players.forEach(p => {
-    p.score = calculatePlayerScore(p);
-  });
-  render();
-};
-
-actions.appendChild(scoreBtn);
 
       div.appendChild(actions);
     }
@@ -476,4 +466,10 @@ for (let i = 0; i < player.mulleCards.length; i += 2) {
   score += player.tabbes;
 
   return score;
+}
+
+function updateScores() {
+  game.players.forEach(p => {
+    p.score = calculatePlayerScore(p);
+  });
 }
